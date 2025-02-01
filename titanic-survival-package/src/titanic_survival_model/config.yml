@@ -1,0 +1,64 @@
+# Package Overview
+package_name: titanic_survival
+
+#Data Files
+training_data_file: train.csv
+test_data_file: test.csv
+raw_data_file: raw.csv
+
+pipeline_name: titanic_survival_model
+pipeline_save_file: titanic_survival_model_output_v
+
+model_name: titanic_survival_model.pkl
+
+parameters:
+  learning_rate: 0.01
+  n_estimators: 1000
+  max_depth: 6
+
+features:
+  - pclass
+  - sex
+  - age
+  - sibsp
+  - parch
+  - fare
+  - cabin
+  - embarked
+  - title # generated from name
+
+# set train/test split
+test_size: 0.2
+
+random_state: 42
+
+features_to_remove:
+  - name
+  - ticket
+  - boat
+  - body
+  - home.dest
+  - sibsp
+  - parch
+
+num_features:
+  - age
+  - fare
+
+cat_features:
+  - sex
+  - cabin
+  - embarked
+  - title
+
+unused_features:
+  - name
+  - ticket
+  - boat
+  - body
+  - home.dest
+
+target: survived
+
+cabin_feature:
+  - cabin

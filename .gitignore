@@ -1,3 +1,37 @@
+# https://git-scm.com/docs/gitignore
+
+# Build
+/dist/
+/build/
+
+# Cache
+.cache/
+.coverage*
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+
+# Editor
+/.idea/
+/.vscode/
+.ipynb_checkpoints/
+
+uv.log
+# Environs
+.env
+/.venv/
+
+# Project
+/docs/*
+/mlruns/*
+/outputs/*
+!**/.gitkeep
+
+# Python
+*.py[cod]
+__pycache__/
+
+
 # OS X
 .DS_Store
 
@@ -95,3 +129,6 @@ dmypy.json
 # VS code configuration
 .vscode
 .history
+
+titatic-survival-package/.gitignore
+titanic-survival-package/.venv/
