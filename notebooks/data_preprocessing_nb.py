@@ -22,9 +22,9 @@ print(yaml.dump(config, default_flow_style=False))
 # COMMAND ----------
 
 # Initialize DataProcessor
-file_path = "/Volumes/mlops_dev/ateyatec/wine_quality_data/red_white_wines_combined.csv"
+# file_path = "/Volumes/mlops_dev/ateyatec/wine_quality_data/red_white_wines_combined.csv"
 
-
+filepath = "../data/red_white_wines_combined.csv"
 # Load the data
 pandas_df = pd.read_csv(filepath)
 # Initialize DataProcessor
