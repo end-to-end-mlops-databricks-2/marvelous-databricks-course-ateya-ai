@@ -1,7 +1,7 @@
 import pandas as pd
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import current_timestamp, to_utc_timestamp
-from sklearn.model_selection import train_test_split # type: ignore
+from sklearn.model_selection import train_test_split  # type: ignore
 
 from wine_quality.config import ProjectConfig
 
@@ -14,22 +14,21 @@ class DataProcessor:
 
     def process(self):
         """Preprocess the dataframe stored in self.df"""
-        
 
         # If self.df is not a DataFrame, stop execution
         if not isinstance(self.df, pd.DataFrame):
             raise TypeError("self.df is not a DataFrame! Check data loading.")
-        
+
         # Handle spaces in the column names
         self.df.columns = [col.replace(" ", "_") for col in self.df.columns]
-        
+
         # Handle numeric variables
         numeric_cols = self.config.num_features
         self.df[numeric_cols] = self.df[self.config.num_features].apply(pd.to_numeric(), errors="coerce")
 
         # Let's fill missing values with mean or default values
         self.df["alcohol"] = self.df["alcohol"].fillna(self.df["alcohol"].mean())
-        
+
         self.df = self.df.fillna({"citric_acid": self.df["citric_acid"].mean(), "sulphates": 0})
 
         # Let's extract the target variable and relevant features
@@ -76,12 +75,6 @@ class DataProcessor:
         #     "SET TBLPROPERTIES (delta.enableChangeDataFeed = true);"
         # )
 
-        self.spark.sql(
-            "ALTER TABLE train_set"
-            "SET TBLPROPERTIES (delta.enableChangeDataFeed = true);"
-        )
+        self.spark.sql("ALTER TABLE train_set" "SET TBLPROPERTIES (delta.enableChangeDataFeed = true);")
 
-        self.spark.sql(
-            "ALTER TABLE test_set"
-            "SET TBLPROPERTIES (delta.enableChangeDataFeed = true);"
-        )
+        self.spark.sql("ALTER TABLE test_set" "SET TBLPROPERTIES (delta.enableChangeDataFeed = true);")
