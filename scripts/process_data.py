@@ -1,8 +1,11 @@
 import logging
+from pathlib import Path
+import os
 
 import yaml
 from pyspark.sql import SparkSession
 
+import wine_quality
 from wine_quality.config import ProjectConfig
 from wine_quality.data_processor import DataProcessor
 
@@ -10,7 +13,11 @@ from wine_quality.data_processor import DataProcessor
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
-config = ProjectConfig.from_yaml(config_path="../project_config.yml")
+PACKAGE_ROOT = Path(wine_quality.__file__).resolve().parent
+CONFIG_FILE_PATH = os.path.join(PACKAGE_ROOT, "project_config.yml")
+
+
+config = ProjectConfig.from_yaml(config_path=CONFIG_FILE_PATH)
 
 
 logger.info("Configuration loaded:")
@@ -24,10 +31,10 @@ file_path = "../data/red_white_wines_combined.csv"
 df = spark.read.csv(file_path, header=True, inferSchema=True).toPandas()
 
 # Initialize DataProcessor
-data_processor = DataProcessor(df, config, spark)
+data_processor = DataProcessor(spark=spark, config=config, df=df)
 
 # Preprocess the data
-data_processor.preprocess()
+data_processor.process()
 
 # Split the data
 X_train, X_test = data_processor.split_data()

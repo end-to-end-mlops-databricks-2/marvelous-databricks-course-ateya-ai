@@ -2,6 +2,7 @@
 Marvelous MLOps End-to-end MLOps with Databricks course
 
 ## Practical information
+
 - Weekly lectures on Wednesdays 16:00-18:00 CET.
 - Code for the lecture is shared before the lecture.
 - Presentation and lecture materials are shared right after the lecture.
@@ -11,8 +12,8 @@ Marvelous MLOps End-to-end MLOps with Databricks course
 - To submit the deliverable, create a feature branch in that repository, and a PR to main branch. The code can be merged after we review & approve & CI pipeline runs successfully.
 - The deliverables can be submitted with a delay (for example, lecture 1 & 2 together), but we expect you to finish all assignments for the course before the 25th of November.
 
-
 ## Set up your environment
+
 In this course, we use Databricks 15.4 LTS runtime, which uses Python 3.11.
 In our examples, we use UV. Check out the documentation on how to install it: https://docs.astral.sh/uv/getting-started/installation/
 
@@ -24,3 +25,5 @@ source venv/bin/activate
 uv pip install -r pyproject.toml --all-extras
 uv lock
 ```
+
+`uv pip install -e .` resolves the module not found issues
