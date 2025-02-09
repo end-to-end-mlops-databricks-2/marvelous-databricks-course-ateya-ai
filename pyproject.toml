@@ -1,7 +1,7 @@
 [project]
-name = "housing-price"
+name = "wine-quality"
 version = "0.0.1"
-description = "Housing prices project"
+description = "Wine Quality Project"
 requires-python = ">=3.11, <3.12"
 dependencies = ["mlflow==2.17.0",
                 "cffi==1.17.1",
@@ -33,18 +33,18 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 where =["src"]
-include = ["house_price*"]
+include = ["wine_quality*"]
 
 [tool.ruff]
 line-length = 120
-select = [
+lint.select = [
     "F",  # pyflakes rules
     "E",  # pycodestyle error rules
     "W",  # pycodestyle warning rules
     "B",  # flake8-bugbear rules
     "I",  # isort rules
 ]
-ignore = [
+lint.ignore = [
     "E501",  # line-too-long
 ]
 
