@@ -27,7 +27,7 @@ logger.info(yaml.dump(config, default_flow_style=False))
 spark = SparkSession.builder.getOrCreate()
 
 file_path = f"/Volumes/{config.catalog_name}/{config.schema_name}/wine_quality_data/red_white_wines_combined.csv"
-#file_path = "../data/red_white_wines_combined.csv"
+# file_path = "../data/red_white_wines_combined.csv"
 df = spark.read.csv(file_path, header=True, inferSchema=True).toPandas()
 
 # Initialize DataProcessor
