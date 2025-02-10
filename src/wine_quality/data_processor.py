@@ -53,28 +53,22 @@ class DataProcessor:
             "update_timestamp_utc", to_utc_timestamp(current_timestamp(), "UTC")
         )
 
-        # train_set_with_timestamp.write.mode("append").saveAsTable(
-        #     f"{self.config.catalog_name}.{self.config.schema_name}.train_set"
-        # )
 
-        # test_set_with_timestamp.write.mode("append").saveAsTable(
-        #     f"{self.config.catalog_name}.{self.config.schema_name}.test_set"
-        # )
-        train_set_with_timestamp.write.mode("append").saveAsTable("train_set")
+        # train_set_with_timestamp.write.mode("append").saveAsTable("train_set")
 
-        test_set_with_timestamp.write.mode("append").saveAsTable("test_set")
+        # test_set_with_timestamp.write.mode("append").saveAsTable("test_set")
 
     def enable_change_data_feed(self):
-        # self.spark.sql(
-        #     f"ALTER TABLE {self.config.catalog_name}.{self.config.schema_name}.train_set "
-        #     "SET TBLPROPERTIES (delta.enableChangeDataFeed = true);"
-        # )
+        self.spark.sql(
+            f"ALTER TABLE {self.config.catalog_name}.{self.config.schema_name}.train_set "
+            "SET TBLPROPERTIES (delta.enableChangeDataFeed = true);"
+        )
 
-        # self.spark.sql(
-        #     f"ALTER TABLE {self.config.catalog_name}.{self.config.schema_name}.test_set "
-        #     "SET TBLPROPERTIES (delta.enableChangeDataFeed = true);"
-        # )
+        self.spark.sql(
+            f"ALTER TABLE {self.config.catalog_name}.{self.config.schema_name}.test_set "
+            "SET TBLPROPERTIES (delta.enableChangeDataFeed = true);"
+        )
 
-        self.spark.sql("ALTER TABLE train_set" "SET TBLPROPERTIES (delta.enableChangeDataFeed = true);")
+        # self.spark.sql("ALTER TABLE train_set" "SET TBLPROPERTIES (delta.enableChangeDataFeed = true);")
 
-        self.spark.sql("ALTER TABLE test_set" "SET TBLPROPERTIES (delta.enableChangeDataFeed = true);")
+        # self.spark.sql("ALTER TABLE test_set" "SET TBLPROPERTIES (delta.enableChangeDataFeed = true);")
