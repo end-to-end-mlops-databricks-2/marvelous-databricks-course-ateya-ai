@@ -24,7 +24,7 @@ class DataProcessor:
 
         # Handle numeric variables
         numeric_cols = self.config.num_features
-        self.df[numeric_cols] = self.df[self.config.num_features].apply(pd.to_numeric(), errors="coerce")
+        self.df[numeric_cols] = self.df[self.config.num_features].apply(pd.to_numeric, errors="coerce")
 
         # Let's fill missing values with mean or default values
         self.df["alcohol"] = self.df["alcohol"].fillna(self.df["alcohol"].mean())
