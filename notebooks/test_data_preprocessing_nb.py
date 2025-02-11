@@ -30,7 +30,7 @@ df.head(5)
 # COMMAND ----------
 
 # Load configuration
-with open("../src/wine_quality/project_config.yml", "r") as file:
+with open("../project_config.yml", "r") as file:
     config = yaml.safe_load(file)
 
 print(config.get("catalog_name"))
