@@ -1,23 +1,31 @@
 # Databricks notebook source
-# Databricks notebook source
-# MAGIC %pip install /Volumes/mlops_dev/ateyatec/wine_quality_data/Wine_Quality-0.0.1-py3-none-any.whl
+#%pip install /Volumes/mlops_dev/ateyatec/packages/wine_quality-0.0.1-py3-none-any.whl
 
 # COMMAND ----------
 
-# dbutils.library.restartPython()
+#dbutils.library.restartPython()
 
 # COMMAND ----------
+
 import pandas as pd
 import yaml
+import logging
 
 from wine_quality.config import ProjectConfig
 from wine_quality.data_processor import DataProcessor
 
+# Configure logging
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logger = logging.getLogger(__name__)
+
 # Load configuration
 config = ProjectConfig.from_yaml(config_path="../project_config.yml")
 
-print("Configuration loaded:")
-print(yaml.dump(config, default_flow_style=False))
+#print("Configuration loaded:")
+#print(yaml.dump(config, default_flow_style=False))
+
+logger.info("Configuration loaded:")
+logger.info(yaml.dump(config, default_flow_style=False))
 
 # COMMAND ----------
 
@@ -28,10 +36,10 @@ filepath = "../data/red_white_wines_combined.csv"
 # Load the data
 pandas_df = pd.read_csv(filepath)
 # Initialize DataProcessor
-data_processor = DataProcessor(pandas_df, config)
+data_processor = DataProcessor(spark=spark, config=config, df=pandas_df)
 
 # Preprocess the data
-data_processor.preprocess()
+data_processor.process()
 
 # COMMAND ----------
 
@@ -46,4 +54,8 @@ if "spark" not in locals():
 
     spark = SparkSession.builder.getOrCreate()
 
-data_processor.save_to_catalog(X_train, X_test, spark)
+data_processor.save_to_catalog(X_train, X_test)
+
+# COMMAND ----------
+
+
