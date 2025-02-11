@@ -19,22 +19,48 @@ class DataProcessor:
         if not isinstance(self.df, pd.DataFrame):
             raise TypeError("self.df is not a DataFrame! Check data loading.")
 
-        # Handle spaces in the column names
-        self.df.columns = [col.replace(" ", "_") for col in self.df.columns]
-
-        # Handle numeric variables
-        numeric_cols = self.config.num_features
-        self.df[numeric_cols] = self.df[self.config.num_features].apply(pd.to_numeric, errors="coerce")
+        # Handle missing values and convert data types as needed
+        self.df["fixed_acidity"] = pd.to_numeric(self.df["fixed_acidity"], errors="coerce")
 
         # Let's fill missing values with mean or default values
         self.df["alcohol"] = self.df["alcohol"].fillna(self.df["alcohol"].mean())
 
-        self.df = self.df.fillna({"citric_acid": self.df["citric_acid"].mean(), "sulphates": 0})
+        # Handle numeric features
+        num_features = self.config.get("num_features", [])
+        missing_cols = []
+        for col in num_features:
+            if col in self.df.columns:
+                self.df[col] = pd.to_numeric(self.df[col], errors="coerce")
+            else:
+                missing_cols.append(col)
+
+        if missing_cols:
+            raise ValueError(f"Columns {missing_cols} not found in DataFrame")
+
+        # Fill missing values with mean or default values
+        self.df = self.df.fillna(
+            {
+                "citric_acid": self.df["citric_acid"].mean() if "citric_acid" in self.df.columns else 0,
+                "sulphates": 0,
+            }
+        )
+
+        # Convert categorical features to the appropriate type
+        cat_features = self.config.get("cat_features", [])
+        missing_cat_cols = []
+        for cat_col in cat_features:
+            if cat_col in self.df.columns:
+                self.df[cat_col] = self.df[cat_col].astype("category")
+            else:
+                missing_cat_cols.append(cat_col)
+
+        if missing_cat_cols:
+            raise ValueError(f"Columns {missing_cat_cols} not found in DataFrame")
 
         # Let's extract the target variable and relevant features
         target = self.config.target
         self.df["Id"] = range(1, self.df.shape[0] + 1)
-        relevant_features = numeric_cols + [target] + ["Id"]
+        relevant_features = num_features + cat_features + [target] + ["Id"]
         self.df = self.df[relevant_features]
         self.df["Id"] = self.df["Id"].astype(str)
 
