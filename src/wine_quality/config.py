@@ -1,4 +1,4 @@
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import yaml
 from pydantic import BaseModel
@@ -10,6 +10,9 @@ class ProjectConfig(BaseModel):
     catalog_name: str
     schema_name: str
     parameters: Dict[str, Any]
+    exeperiment_name_basic: Optional[str]
+    experiment_name_custom: Optional[str]
+    experiment_name_fe: Optional[str]  # featuree engineering
 
     @classmethod
     def from_yaml(cls, config_path: str):

@@ -60,7 +60,7 @@ class DataProcessor:
         # Let's extract the target variable and relevant features
         target = self.config.target
         self.df["Id"] = range(1, self.df.shape[0] + 1)
-        relevant_features = num_features + cat_features + [target] + ["Id"]
+        relevant_features = cat_features + num_features + [target] + ["Id"]
         self.df = self.df[relevant_features]
         self.df["Id"] = self.df["Id"].astype(str)
 
