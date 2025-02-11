@@ -22,7 +22,7 @@ from sklearn.model_selection import train_test_split
 # df = pd.read_csv(filepath)
 
 # Works both locally and in a Databricks environment
-file_path = "../data/red_white_wines_combined.csv"
+file_path = "../data/processed_data.csv"
 # Load the data
 df = pd.read_csv(file_path)
 df.head(5)

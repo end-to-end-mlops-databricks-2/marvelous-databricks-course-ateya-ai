@@ -32,16 +32,16 @@ logger.info(yaml.dump(config, default_flow_style=False))
 # COMMAND ----------
 
 # Initialize DataProcessor
-# file_path = "/Volumes/mlops_dev/ateyatec/wine_quality_data/red_white_wines_combined.csv"
+# file_path = "/Volumes/mlops_dev/ateyatec/wine_quality_data/processed_data.csv"
 
-filepath = "../data/red_white_wines_combined.csv"
+filepath = "../data/processed_data.csv"
 # Load the data
 pandas_df = pd.read_csv(filepath)
 
 spark = SparkSession.builder.getOrCreate()
 
 # spark_df = spark.read.csv(
-#     f"/Volumes/{config.catalog_name}/{config.schema_name}/data/data.csv", header=True, inferSchema=True
+#     f"/Volumes/{config.catalog_name}/{config.schema_name}/data/processed_data.csv", header=True, inferSchema=True
 # ).toPandas()
 # Initialize DataProcessor
 data_processor = DataProcessor(spark=spark, config=config, df=pandas_df)
