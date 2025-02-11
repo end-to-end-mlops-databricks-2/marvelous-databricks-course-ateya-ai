@@ -1,16 +1,15 @@
 # Databricks notebook source
-# Databricks notebook source
-
 # MAGIC %md
-# MAGIC # Hotel Reservation Prediction Exercise
+# MAGIC # Wine Quality Prediction Exercise
 # MAGIC
-# MAGIC This notebook demonstrates how to predict Hotel Reservation Status using the Hotel Reservation dataset. We'll go through the process of loading data, preprocessing, model creation, and visualization of results.
+# MAGIC This notebook demonstrates how to predict wine quality. We'll go through the process of loading data, preprocessing, model creation, and visualization of results.
 # MAGIC
 # MAGIC ## Importing Required Libraries
 # MAGIC
 # MAGIC First, let's import all the necessary libraries.
 
 # COMMAND ----------
+
 import pandas as pd
 import yaml
 from sklearn.model_selection import train_test_split
@@ -26,12 +25,12 @@ from sklearn.model_selection import train_test_split
 file_path = "../data/red_white_wines_combined.csv"
 # Load the data
 df = pd.read_csv(file_path)
-df.head(2)
+df.head(5)
 
 # COMMAND ----------
 
 # Load configuration
-with open("../project_config.yml", "r") as file:
+with open("../src/wine_quality/project_config.yml", "r") as file:
     config = yaml.safe_load(file)
 
 print(config.get("catalog_name"))
@@ -39,48 +38,65 @@ num_features = config.get("num_features")
 print(num_features)
 
 
-# MAGIC ## Preprocessing
+# COMMAND ----------
+
+## Preprocessing
+# Handle spaces in the column names
+df.columns = [col.replace(" ", "_") for col in df.columns]
+df.head(5)
 
 # COMMAND ----------
 
-# Remove rows with missing target
-
 # Handle missing values and convert data types as needed
-df["fixed acidity"] = pd.to_numeric(df["fixed acidity"], errors="coerce")
+df["fixed_acidity"] = pd.to_numeric(df["fixed_acidity"], errors="coerce")
 
-median_no_of_previous_cancellations = df["alcohol"].median()
-df["alcohol"].fillna(median_no_of_previous_cancellations, inplace=True)
+# Let's fill missing values with mean or default values
+df["alcohol"] = df["alcohol"].fillna(df["alcohol"].mean())
 
 # Handle numeric features
-num_features = config.get("num_features")
+num_features = config.get("num_features", [])
+missing_cols = []
 for col in num_features:
-    df[col] = pd.to_numeric(df[col], errors="coerce")
+    if col in df.columns:
+        df[col] = pd.to_numeric(df[col], errors="coerce")
+    else:
+        missing_cols.append(col)
+
+if missing_cols:
+    raise ValueError(f"Columns {missing_cols} not found in DataFrame")
 
 # Fill missing values with mean or default values
-df.fillna(
+df = df.fillna(
     {
-        "citric acid": df["citric acid"].mean(),
-        # "type_of_meal_plan": "None",
+        "citric_acid": df["citric_acid"].mean() if "citric_acid" in df.columns else 0,
         "sulphates": 0,
-    },
-    inplace=True,
+    }
 )
 
 # Convert categorical features to the appropriate type
-cat_features = config.get("cat_features")
+cat_features = config.get("cat_features", [])
+missing_cat_cols = []
 for cat_col in cat_features:
-    df[cat_col] = df[cat_col].astype("category")
+    if cat_col in df.columns:
+        df[cat_col] = df[cat_col].astype("category")
+    else:
+        missing_cat_cols.append(cat_col)
+
+if missing_cat_cols:
+    raise ValueError(f"Columns {missing_cat_cols} not found in DataFrame")
 
 # Extract target and relevant features
 target = config.get("target")
-# relevant_columns = cat_features + num_features + [target]
 
-df["Id"] = range(1, len(df) + 1)
-relevant_columns = cat_features + num_features + [target] + ["Id"]
+df["Id"] = range(1, df.shape[0] + 1)
+relevant_columns = [col for col in cat_features + num_features + [target] + ["Id"] if col in df.columns]
 print(relevant_columns)
 
 df = df[relevant_columns]
 df["Id"] = df["Id"].astype("str")
 train_set, test_set = train_test_split(df, test_size=0.2, random_state=42)
 
-df.head(2)
+# display(df.head(5))
+df.head(5)
+
+# COMMAND ----------
