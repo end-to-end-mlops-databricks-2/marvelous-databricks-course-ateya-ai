@@ -1,15 +1,21 @@
 import mlflow
+import pandas as pd
+from lightgbm import LGBMClassifier
 from loguru import logger
 from mlflow import MlflowClient
 from mlflow.models import infer_signature
-import pandas as pd
 from pyspark.sql import SparkSession
-from sklearn.preprocessing import OneHotEncoder
 from sklearn.compose import ColumnTransformer
+from sklearn.metrics import (
+    accuracy_score,
+    classification_report,
+    f1_score,
+    precision_score,
+    recall_score,
+    roc_auc_score,
+)
 from sklearn.pipeline import Pipeline
-from lightgbm import LGBMClassifier
-
-from sklearn.metrics import accuracy_score, roc_auc_score, f1_score, precision_score, recall_score, classification_report
+from sklearn.preprocessing import OneHotEncoder
 
 from wine_quality.config import ProjectConfig, Tags
 
@@ -55,7 +61,7 @@ class BasicModel:
         self.train_set_spark = self.spark.table(f"{self.catalog_name}.{self.schema_name}.train_set")
         self.train_set = self.train_set_spark.toPandas()
         self.test_set = self.spark.table(f"{self.catalog_name}.{self.schema_name}.test_set").toPandas()
-        self.data_version = "0" #describe history -> retrieve
+        self.data_version = "0"  # describe history -> retrieve
 
         self.X_train = self.train_set[self.num_features + self.cat_features]
         self.y_train = self.train_set[self.target]
@@ -73,14 +79,12 @@ class BasicModel:
         """
         logger.info("🔄 Defining preprocessing pipeline...")
         self.preprocessor = ColumnTransformer(
-            transformers=[('cat', OneHotEncoder(handle_unknown='ignore'), self.cat_features)], 
-            remainder='passthrough'
+            transformers=[("cat", OneHotEncoder(handle_unknown="ignore"), self.cat_features)], remainder="passthrough"
         )
 
-        self.pipeline = Pipeline(steps=[
-            ('preprocessor', self.preprocessor),
-            ('classifier', LGBMClassifier(**self.parameters))
-        ])
+        self.pipeline = Pipeline(
+            steps=[("preprocessor", self.preprocessor), ("classifier", LGBMClassifier(**self.parameters))]
+        )
         logger.info("✅ Preprocessing pipeline defined.")
 
     def train(self):
@@ -130,13 +134,11 @@ class BasicModel:
             dataset = mlflow.data.from_spark(
                 self.train_set_spark,
                 table_name=f"{self.catalog_name}.{self.schema_name}.train_set",
-                version=self.data_version
+                version=self.data_version,
             )
             mlflow.log_input(dataset, context="training")
             mlflow.sklearn.log_model(
-                sk_model=self.pipeline,
-                artifact_path="lightgbm-pipeline-model",
-                signature=signature
+                sk_model=self.pipeline, artifact_path="lightgbm-pipeline-model", signature=signature
             )
 
     def register_model(self):
@@ -145,9 +147,9 @@ class BasicModel:
         """
         logger.info("🔄 Registering the model in UC...")
         registered_model = mlflow.register_model(
-            model_uri=f'runs:/{self.run_id}/lightgbm-pipeline-model',
+            model_uri=f"runs:/{self.run_id}/lightgbm-pipeline-model",
             name=f"{self.catalog_name}.{self.schema_name}.wine_quality_model_basic",
-            tags=self.tags
+            tags=self.tags,
         )
         logger.info(f"✅ Model registered as version {registered_model.version}.")
 
@@ -157,7 +159,7 @@ class BasicModel:
         client.set_registered_model_alias(
             name=f"{self.catalog_name}.{self.schema_name}.wine_quality_model_basic",
             alias="latest-model",
-            version=latest_version
+            version=latest_version,
         )
 
     def retrieve_current_run_dataset(self):

@@ -3,7 +3,7 @@
 
 # COMMAND ----------
 
-dbutils.library.restartPython()
+# dbutils.library.restartPython()
 
 # COMMAND ----------
 
@@ -32,7 +32,7 @@ logger.info(yaml.dump(config, default_flow_style=False))
 # COMMAND ----------
 
 # Initialize DataProcessor
-#file_path = "/Volumes/mlops_dev/ateyatec/data/data.csv"
+# file_path = "/Volumes/mlops_dev/ateyatec/data/data.csv"
 
 filepath = "../data/data.csv"
 # Load the data
@@ -65,5 +65,3 @@ if "spark" not in locals():
 data_processor.save_to_catalog(X_train, X_test)
 
 # COMMAND ----------
-
-

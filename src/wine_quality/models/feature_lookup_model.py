@@ -1,5 +1,3 @@
-from datetime import datetime
-
 import mlflow
 from databricks import feature_engineering
 from databricks.feature_engineering import FeatureFunction, FeatureLookup
@@ -10,7 +8,14 @@ from mlflow.models import infer_signature
 from mlflow.tracking import MlflowClient
 from pyspark.sql import SparkSession
 from sklearn.compose import ColumnTransformer
-from sklearn.metrics import accuracy_score, roc_auc_score, f1_score, precision_score, recall_score, classification_report
+from sklearn.metrics import (
+    accuracy_score,
+    classification_report,
+    f1_score,
+    precision_score,
+    recall_score,
+    roc_auc_score,
+)
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
 
@@ -88,9 +93,11 @@ class FeatureLookUpModel:
         )
         self.test_set = self.spark.table(f"{self.catalog_name}.{self.schema_name}.test_set").toPandas()
 
-        self.train_set = self.train_set.withColumn("fixed_acidity", self.train_set["fixed_acidity"].cast("DOUBLE")) \
-            .withColumn("citric_acid", self.train_set["citric_acid"].cast("DOUBLE")) \
-            .withColumn("volatile_acidity", self.train_set["volatile_acidity"].cast("DOUBLE")) 
+        self.train_set = (
+            self.train_set.withColumn("fixed_acidity", self.train_set["fixed_acidity"].cast("DOUBLE"))
+            .withColumn("citric_acid", self.train_set["citric_acid"].cast("DOUBLE"))
+            .withColumn("volatile_acidity", self.train_set["volatile_acidity"].cast("DOUBLE"))
+        )
         self.train_set = self.train_set.withColumn("Id", self.train_set["Id"].cast("string"))
 
         logger.info("✅ Data successfully loaded.")
@@ -111,14 +118,20 @@ class FeatureLookUpModel:
                 FeatureFunction(
                     udf_name=self.function_name,
                     output_name="total_acidity_index",
-                    input_bindings={"fixed_acidity": "fixed_acidity", "citric_acid": "citric_acid", "volatile_acidity": "volatile_acidity"},
+                    input_bindings={
+                        "fixed_acidity": "fixed_acidity",
+                        "citric_acid": "citric_acid",
+                        "volatile_acidity": "volatile_acidity",
+                    },
                 ),
             ],
             exclude_columns=["update_timestamp_utc"],
         )
 
         self.training_df = self.training_set.load_df().toPandas()
-        self.test_set["total_acidity_index"] =  self.test_set["fixed_acidity"] + self.test_set["citric_acid"] - self.test_set["volatile_acidity"]
+        self.test_set["total_acidity_index"] = (
+            self.test_set["fixed_acidity"] + self.test_set["citric_acid"] - self.test_set["volatile_acidity"]
+        )
 
         self.X_train = self.training_df[self.num_features + self.cat_features + ["total_acidity_index"]]
         self.y_train = self.training_df[self.target]

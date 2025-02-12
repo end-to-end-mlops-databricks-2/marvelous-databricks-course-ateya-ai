@@ -16,7 +16,7 @@ spark = SparkSession.builder.getOrCreate()
 tags_dict = {"git_sha": "abcd12345", "branch": "week2"}
 tags = Tags(**tags_dict)
 
-#config = ProjectConfig.from_yaml(config_path="/Volumes/mlops_prod/house_prices/data/project_config.yml")
+# config = ProjectConfig.from_yaml(config_path="/Volumes/mlops_prod/house_prices/data/project_config.yml")
 config = ProjectConfig.from_yaml(config_path="../project_config.yml")
 
 
@@ -67,4 +67,3 @@ predictions = fe_model.predict(X_test)
 
 # Display predictions
 logger.info(predictions)
-

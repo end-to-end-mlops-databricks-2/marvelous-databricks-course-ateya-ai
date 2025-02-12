@@ -1,6 +1,5 @@
 # Databricks notebook source
 # Databricks notebook source
-from loguru import logger
 
 import mlflow
 from pyspark.sql import SparkSession
@@ -62,4 +61,3 @@ X_test = test_set.drop(config.target).toPandas()
 
 predictions_df = basic_model.load_latest_model_and_predict(X_test)
 # COMMAND ----------
-

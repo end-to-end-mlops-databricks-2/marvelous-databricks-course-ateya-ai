@@ -1,13 +1,10 @@
 # Databricks notebook source
 # Databricks notebook source
-from loguru import logger
 
 import mlflow
-from pyspark.sql import SparkSession
-
 from house_price.config import ProjectConfig, Tags
 from house_price.models.custom_model import CustomModel
-
+from pyspark.sql import SparkSession
 
 # COMMAND ----------
 # Default profile:
@@ -29,7 +26,10 @@ tags = Tags(**{"git_sha": "abcd12345", "branch": "week2"})
 # )
 
 custom_model = CustomModel(
-    config=config, tags=tags, spark=spark, code_paths=["/Volumes/mlops_dev/ateyatec/packages/wine_quality-0.0.1-py3-none-any.whl"]
+    config=config,
+    tags=tags,
+    spark=spark,
+    code_paths=["/Volumes/mlops_dev/ateyatec/packages/wine_quality-0.0.1-py3-none-any.whl"],
 )
 
 # COMMAND ----------
@@ -67,4 +67,3 @@ X_test = test_set.drop(config.target).toPandas()
 
 predictions_df = custom_model.load_latest_model_and_predict(X_test)
 # COMMAND ----------
-
