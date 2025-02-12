@@ -4,8 +4,8 @@ import mlflow
 from loguru import logger
 from pyspark.sql import SparkSession
 
-from house_price.config import ProjectConfig, Tags
-from house_price.feature_lookup_model import FeatureLookUpModel
+from wine_quality.config import ProjectConfig, Tags
+from wine_quality.models.feature_lookup_model import FeatureLookUpModel
 
 # Configure tracking uri
 mlflow.set_tracking_uri("databricks")
@@ -16,7 +16,8 @@ spark = SparkSession.builder.getOrCreate()
 tags_dict = {"git_sha": "abcd12345", "branch": "week2"}
 tags = Tags(**tags_dict)
 
-config = ProjectConfig.from_yaml(config_path="/Volumes/mlops_prod/house_prices/data/project_config.yml")
+#config = ProjectConfig.from_yaml(config_path="/Volumes/mlops_prod/house_prices/data/project_config.yml")
+config = ProjectConfig.from_yaml(config_path="../project_config.yml")
 
 
 # COMMAND ----------
@@ -55,7 +56,7 @@ spark = SparkSession.builder.getOrCreate()
 test_set = spark.table(f"{config.catalog_name}.{config.schema_name}.test_set").limit(10)
 
 # Drop feature lookup columns and target
-X_test = test_set.drop("OverallQual", "GrLivArea", "GarageCars", config.target)
+X_test = test_set.drop("fixed_acidity", "citric_acid", "volatile_acidity", config.target)
 
 
 # COMMAND ----------

@@ -24,8 +24,12 @@ tags = Tags(**{"git_sha": "abcd12345", "branch": "week2"})
 
 # COMMAND ----------
 # Initialize model with the config path
+# custom_model = CustomModel(
+#     config=config, tags=tags, spark=spark, code_paths=["../dist/wine_quality-0.0.1-py3-none-any.whl"]
+# )
+
 custom_model = CustomModel(
-    config=config, tags=tags, spark=spark, code_paths=["../dist/house_price-0.0.1-py3-none-any.whl"]
+    config=config, tags=tags, spark=spark, code_paths=["/Volumes/mlops_dev/ateyatec/packages/wine_quality-0.0.1-py3-none-any.whl"]
 )
 
 # COMMAND ----------
@@ -38,9 +42,9 @@ custom_model.train()
 custom_model.log_model()
 
 # COMMAND ----------
-run_id = mlflow.search_runs(experiment_names=["/Shared/house-prices-custom"]).run_id[0]
+run_id = mlflow.search_runs(experiment_names=["/Shared/wine-quality-custom"]).run_id[0]
 
-model = mlflow.pyfunc.load_model(f"runs:/{run_id}/pyfunc-house-price-model")
+model = mlflow.pyfunc.load_model(f"runs:/{run_id}/pyfunc-wine-quality-model")
 
 # COMMAND ----------
 # Retrieve dataset for the current run

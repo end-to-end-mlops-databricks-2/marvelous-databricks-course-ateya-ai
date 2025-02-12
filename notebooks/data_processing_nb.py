@@ -47,7 +47,7 @@ spark = SparkSession.builder.getOrCreate()
 data_processor = DataProcessor(spark=spark, df=pandas_df, config=config)
 
 # Preprocess the data
-data_processor.process()
+data_processor.preprocess()
 
 # COMMAND ----------
 

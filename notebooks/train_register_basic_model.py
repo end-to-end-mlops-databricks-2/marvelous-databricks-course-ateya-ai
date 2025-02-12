@@ -5,8 +5,8 @@ from loguru import logger
 import mlflow
 from pyspark.sql import SparkSession
 
-from house_price.config import ProjectConfig, Tags
-from house_price.models.basic_model import BasicModel
+from wine_quality.config import ProjectConfig, Tags
+from wine_quality.models.basic_model import BasicModel
 
 # COMMAND ----------
 # Default profile:
@@ -36,7 +36,7 @@ basic_model.log_model()
 
 # COMMAND ----------
 run_id = mlflow.search_runs(
-    experiment_names=["/Shared/house-prices-basic"], filter_string="tags.branch='week2'"
+    experiment_names=["/Shared/wine-quality-basic"], filter_string="tags.branch='week2'"
 ).run_id[0]
 
 model = mlflow.sklearn.load_model(f"runs:/{run_id}/lightgbm-pipeline-model")

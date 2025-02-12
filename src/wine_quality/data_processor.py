@@ -12,7 +12,7 @@ class DataProcessor:
         self.df = df
         self.config = config
 
-    def process(self):
+    def preprocess(self):
         """Preprocess the dataframe stored in self.df"""
 
         # If self.df is not a DataFrame, stop execution
