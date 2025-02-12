@@ -34,7 +34,7 @@ with open("../project_config.yml", "r") as file:
     config = yaml.safe_load(file)
 
 print(config.get("catalog_name"))
-num_features = config.get("num_features")
+num_features = config.num_features
 print(num_features)
 
 
@@ -54,7 +54,7 @@ df["fixed_acidity"] = pd.to_numeric(df["fixed_acidity"], errors="coerce")
 df["alcohol"] = df["alcohol"].fillna(df["alcohol"].mean())
 
 # Handle numeric features
-num_features = config.get("num_features", [])
+num_features = config.num_features
 missing_cols = []
 for col in num_features:
     if col in df.columns:
@@ -74,7 +74,7 @@ df = df.fillna(
 )
 
 # Convert categorical features to the appropriate type
-cat_features = config.get("cat_features", [])
+cat_features = config.cat_features
 missing_cat_cols = []
 for cat_col in cat_features:
     if cat_col in df.columns:
@@ -86,7 +86,7 @@ if missing_cat_cols:
     raise ValueError(f"Columns {missing_cat_cols} not found in DataFrame")
 
 # Extract target and relevant features
-target = config.get("target")
+target = config.target
 
 df["Id"] = range(1, df.shape[0] + 1)
 relevant_columns = [col for col in cat_features + num_features + [target] + ["Id"] if col in df.columns]
