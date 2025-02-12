@@ -18,7 +18,6 @@ num_features:
   - sulphates
   - citric_acid
   - fixed_acidity
-  - is_red
 
 cat_features:
   - type

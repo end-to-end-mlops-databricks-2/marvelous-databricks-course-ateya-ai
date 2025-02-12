@@ -17,12 +17,12 @@ from sklearn.model_selection import train_test_split
 # COMMAND ----------
 
 # Only works in a Databricks environment if the data is there
-# file_path = "/Volumes/mlops_dev/ateyatec/wine_quality_data/red_white_wines_combined.csv"
+# file_path = "/Volumes/mlops_dev/ateyatec/data/data.csv"
 # Load the data
 # df = pd.read_csv(filepath)
 
 # Works both locally and in a Databricks environment
-file_path = "../data/processed_data.csv"
+file_path = "../data/data.csv"
 # Load the data
 df = pd.read_csv(file_path)
 df.head(5)
