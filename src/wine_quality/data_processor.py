@@ -26,7 +26,7 @@ class DataProcessor:
         self.df["alcohol"] = self.df["alcohol"].fillna(self.df["alcohol"].mean())
 
         # Handle numeric features
-        num_features = self.config.get("num_features", [])
+        num_features = self.config.num_features
         missing_cols = []
         for col in num_features:
             if col in self.df.columns:
@@ -46,7 +46,7 @@ class DataProcessor:
         )
 
         # Convert categorical features to the appropriate type
-        cat_features = self.config.get("cat_features", [])
+        cat_features = self.config.cat_features
         missing_cat_cols = []
         for cat_col in cat_features:
             if cat_col in self.df.columns:
