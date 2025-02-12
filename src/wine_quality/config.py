@@ -6,6 +6,7 @@ from pydantic import BaseModel
 
 class ProjectConfig(BaseModel):
     num_features: List[str]
+    cat_features: List[str]
     target: str
     catalog_name: str
     schema_name: str
