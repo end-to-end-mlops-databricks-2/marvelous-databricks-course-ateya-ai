@@ -1,9 +1,9 @@
 # Databricks notebook source
-# %pip install /Volumes/mlops_dev/ateyatec/packages/wine_quality-0.0.1-py3-none-any.whl
+# MAGIC %pip install /Volumes/mlops_dev/ateyatec/packages/wine_quality-0.0.1-py3-none-any.whl
 
 # COMMAND ----------
 
-# dbutils.library.restartPython()
+dbutils.library.restartPython()
 
 # COMMAND ----------
 
@@ -32,7 +32,7 @@ logger.info(yaml.dump(config, default_flow_style=False))
 # COMMAND ----------
 
 # Initialize DataProcessor
-# file_path = "/Volumes/mlops_dev/ateyatec/wine_quality_data/processed_data.csv"
+#file_path = "/Volumes/mlops_dev/ateyatec/data/data.csv"
 
 filepath = "../data/data.csv"
 # Load the data
@@ -44,7 +44,7 @@ spark = SparkSession.builder.getOrCreate()
 #     f"/Volumes/{config.catalog_name}/{config.schema_name}/data/data.csv", header=True, inferSchema=True
 # ).toPandas()
 # Initialize DataProcessor
-data_processor = DataProcessor(spark=spark, config=config, df=pandas_df)
+data_processor = DataProcessor(spark=spark, df=pandas_df, config=config)
 
 # Preprocess the data
 data_processor.process()
@@ -65,3 +65,5 @@ if "spark" not in locals():
 data_processor.save_to_catalog(X_train, X_test)
 
 # COMMAND ----------
+
+
