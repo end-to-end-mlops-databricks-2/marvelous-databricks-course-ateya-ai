@@ -1,5 +1,9 @@
+---
 catalog_name: mlops_dev
 schema_name: ateyatec
+experiment_name_basic: /Shared/wine-quality-basic
+experiment_name_custom: /Shared/wine-quality-custom
+experiment_name_fe: /Shared/wine-quality-fe
 
 parameters:
   learning_rate: 0.01
