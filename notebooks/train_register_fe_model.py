@@ -76,10 +76,10 @@ X_test = test_set.drop("fixed_acidity", "citric_acid", "volatile_acidity", confi
 
 # COMMAND ----------
 
-fe_model = FeatureLookUpModel(config=config)
+fe_model = FeatureLookUpModel(config=config, tags=tags, spark=spark)
 
 # Make predictions
-predictions = fe_model.predict(X_test)
+predictions = fe_model.load_latest_model_and_predict(X_test)
 
 # Display predictions
 logger.info(predictions)
