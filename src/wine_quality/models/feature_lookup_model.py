@@ -4,7 +4,7 @@ import mlflow
 from databricks import feature_engineering
 from databricks.feature_engineering import FeatureFunction, FeatureLookup
 from databricks.sdk import WorkspaceClient
-from lightgbm import LGBMClassifer
+from lightgbm import LGBMClassifier
 from loguru import logger
 from mlflow.models import infer_signature
 from mlflow.tracking import MlflowClient
@@ -152,7 +152,7 @@ class FeatureLookUpModel:
             transformers=[("cat", OneHotEncoder(handle_unknown="ignore"), self.cat_features)], remainder="passthrough"
         )
 
-        pipeline = Pipeline(steps=[("preprocessor", preprocessor), ("classifier", LGBMClassifer(**self.parameters))])
+        pipeline = Pipeline(steps=[("preprocessor", preprocessor), ("classifier", LGBMClassifier(**self.parameters))])
 
         mlflow.set_experiment(self.experiment_name)
         mlflow.autolog(disable=True)

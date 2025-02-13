@@ -2,9 +2,10 @@
 # Databricks notebook source
 
 import mlflow
-from house_price.config import ProjectConfig, Tags
-from house_price.models.custom_model import CustomModel
 from pyspark.sql import SparkSession
+
+from wine_quality.config import ProjectConfig, Tags
+from wine_quality.models.custom_model import CustomModel
 
 # COMMAND ----------
 # Default profile:
