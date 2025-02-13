@@ -14,6 +14,7 @@ class ProjectConfig(BaseModel):
     experiment_name_basic: Optional[str]
     experiment_name_custom: Optional[str]
     experiment_name_fe: Optional[str]
+    ab_test: Optional[str, Any]  # type: ignore # Dictionary to hold A/B test parameters
 
     @classmethod
     def from_yaml(cls, config_path: str):
