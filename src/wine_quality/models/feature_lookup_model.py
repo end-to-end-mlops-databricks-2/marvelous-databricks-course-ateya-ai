@@ -56,7 +56,7 @@ class FeatureLookUpModel:
         """
         self.spark.sql(f"""
         CREATE OR REPLACE TABLE {self.feature_table_name}
-        (Id STRING NOT NULL, (fixed_acidity DOUBLE, citric_acid DOUBLE, volatile_acidity DOUBLE);
+        (Id STRING NOT NULL, fixed_acidity DOUBLE, citric_acid DOUBLE, volatile_acidity DOUBLE;
         """)
         self.spark.sql(f"ALTER TABLE {self.feature_table_name} ADD CONSTRAINT wine_quality_pk PRIMARY KEY(Id);")
         self.spark.sql(f"ALTER TABLE {self.feature_table_name} SET TBLPROPERTIES (delta.enableChangeDataFeed = true);")
