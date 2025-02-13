@@ -1,5 +1,12 @@
 # Databricks notebook source
-# Databricks notebook source
+# MAGIC %pip install /Volumes/mlops_dev/ateyatec/packages/wine_quality-0.0.2-py3-none-any.whl
+
+# COMMAND ----------
+
+dbutils.library.restartPython()
+
+# COMMAND ----------
+
 import mlflow
 from loguru import logger
 from pyspark.sql import SparkSession
@@ -21,34 +28,42 @@ config = ProjectConfig.from_yaml(config_path="../project_config.yml")
 
 
 # COMMAND ----------
+
 # Initialize model
 fe_model = FeatureLookUpModel(config=config, tags=tags, spark=spark)
 
 # COMMAND ----------
+
 # Create feature table
 fe_model.create_feature_table()
 
 # COMMAND ----------
+
 # Define house age feature function
 fe_model.define_feature_function()
 
 # COMMAND ----------
+
 # Load data
 fe_model.load_data()
 
 # COMMAND ----------
+
 # Perform feature engineering
 fe_model.feature_engineering()
 
 # COMMAND ----------
+
 # Train the model
 fe_model.train()
 
 # COMMAND ----------
+
 # Train the model
 fe_model.register_model()
 
 # COMMAND ----------
+
 # Lets run prediction on the last production model
 # Load test set from Delta table
 spark = SparkSession.builder.getOrCreate()
@@ -60,6 +75,7 @@ X_test = test_set.drop("fixed_acidity", "citric_acid", "volatile_acidity", confi
 
 
 # COMMAND ----------
+
 fe_model = FeatureLookUpModel(config=config)
 
 # Make predictions
