@@ -1,3 +1,5 @@
+import json
+
 import mlflow
 import pandas as pd
 from lightgbm import LGBMClassifier
@@ -111,23 +113,28 @@ class BasicModel:
             precision = precision_score(self.y_test, y_pred)
             recall = recall_score(self.y_test, y_pred)
             f1 = f1_score(self.y_test, y_pred)
-            report = classification_report(self.y_test, y_pred)
+            report = classification_report(self.y_test, y_pred, output_dict=True)
+
             logger.info(f"📊 Accuracy Score: {accuracy}")
             logger.info(f"📊 ROC AUC SCORE: {roc_auc}")
-            logger.info(f"📊 Classification Report: {report}")
             logger.info(f"📊 Precision Score: {precision}")
             logger.info(f"📊 Recall Score: {recall}")
             logger.info(f"📊 F1 Score: {f1}")
+            logger.info(f"📊 \nClassification Report: \n{report}")
 
             # Log parameters and metrics
             mlflow.log_param("model_type", "LightGBM Clasisifier with preprocessing")
             mlflow.log_params(self.parameters)
             mlflow.log_metric("Accuracy Score", accuracy)
             mlflow.log_metric("ROC AUC SCORE", roc_auc)
-            mlflow.log_metric("Classification Report", report)
             mlflow.log_metric("Precision", precision)
             mlflow.log_metric("Recall", recall)
             mlflow.log_metric("f1_score", f1)
+
+            # Log classification report as an artifact
+            with open("classification_report.json", "w") as f:
+                json.dump(report, f)
+            mlflow.log_artifact("classification_report.json")
 
             # Log the model
             signature = infer_signature(model_input=self.X_train, model_output=y_pred)

@@ -29,7 +29,7 @@ custom_model = CustomModel(
     config=config,
     tags=tags,
     spark=spark,
-    code_paths=["/Volumes/mlops_dev/ateyatec/packages/wine_quality-0.0.1-py3-none-any.whl"],
+    code_paths=["/Volumes/mlops_dev/ateyatec/packages/wine_quality-0.0.2-py3-none-any.whl"],
 )
 
 # COMMAND ----------

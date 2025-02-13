@@ -7,7 +7,7 @@ experiment_name_fe: /Shared/wine-quality-fe
 
 parameters:
   learning_rate: 0.01
-  n_stimators: 1000
+  n_estimators: 1000
   max_depth: 6
 
 num_features:
