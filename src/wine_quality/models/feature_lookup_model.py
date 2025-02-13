@@ -56,7 +56,7 @@ class FeatureLookUpModel:
         """
         self.spark.sql(f"""
         CREATE OR REPLACE TABLE {self.feature_table_name}
-        (Id STRING NOT NULL, fixed_acidity DOUBLE, citric_acid DOUBLE, volatile_acidity DOUBLE;
+        (Id STRING NOT NULL, fixed_acidity DOUBLE, citric_acid DOUBLE, volatile_acidity DOUBLE);
         """)
         self.spark.sql(f"ALTER TABLE {self.feature_table_name} ADD CONSTRAINT wine_quality_pk PRIMARY KEY(Id);")
         self.spark.sql(f"ALTER TABLE {self.feature_table_name} SET TBLPROPERTIES (delta.enableChangeDataFeed = true);")
@@ -219,9 +219,18 @@ class FeatureLookUpModel:
 
     def load_latest_model_and_predict(self, X):
         """
-        Load the trained model from MLflow using Feature Engineering Client and make predictions.
-        """
-        model_uri = f"models:/{self.catalog_name}.{self.schema_name}.wine_quality_model_fe@latest-model"
+        Load the latest version of the trained model from MLflow using the Feature Engineering Client and make predictions.
 
-        predictions = self.fe.score_batch(model_uri=model_uri, df=X)
-        return predictions
+        Parameters:
+        - X: DataFrame containing the input features for prediction.
+
+        Returns:
+        - predictions: The model's predictions for the input data.
+        """
+        try:
+            model_uri = f"models:/{self.catalog_name}.{self.schema_name}.wine_quality_model_fe@latest-model"
+            predictions = self.fe.score_batch(model_uri=model_uri, df=X)
+            return predictions
+        except Exception as e:
+            logger.error(f"Failed to load model and make predictions: {e}")
+            raise
