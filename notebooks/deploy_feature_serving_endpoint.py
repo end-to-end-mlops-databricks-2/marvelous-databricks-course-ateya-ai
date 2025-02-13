@@ -1,14 +1,15 @@
 # Databricks notebook source
 # Databricks notebook source
 import os
-from pyspark.sql import SparkSession
-from pyspark.dbutils import DBUtils
 
-spark = SparkSession.builder.getOrCreate()
-dbutils = DBUtils(spark)
+from pyspark.dbutils import DBUtils
+from pyspark.sql import SparkSession
 
 from wine_quality.config import ProjectConfig
 from wine_quality.serving.feature_serving import FeatureServing
+
+spark = SparkSession.builder.getOrCreate()
+dbutils = DBUtils(spark)
 
 # Load project config
 config = ProjectConfig.from_yaml(config_path="../project_config.yml")

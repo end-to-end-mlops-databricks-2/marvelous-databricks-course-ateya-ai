@@ -5,10 +5,12 @@ import hashlib
 
 import mlflow
 from databricks.sdk import WorkspaceClient
-from wine_quality.config import ProjectConfig, Tags
-from wine_quality.models.basic_model import BasicModel
+from databricks.sdk.service.serving import EndpointCoreConfigInput, ServedEntityInput
 from mlflow.models import infer_signature
 from pyspark.sql import SparkSession
+
+from wine_quality.config import ProjectConfig, Tags
+from wine_quality.models.basic_model import BasicModel
 
 # COMMAND ----------
 # Default profile:

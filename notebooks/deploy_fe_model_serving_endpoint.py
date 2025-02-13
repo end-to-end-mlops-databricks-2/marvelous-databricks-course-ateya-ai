@@ -3,13 +3,11 @@
 import os
 
 from loguru import logger
-from pyspark.sql import SparkSession
 from pyspark.dbutils import DBUtils
+from pyspark.sql import SparkSession
 
 from wine_quality.config import ProjectConfig
 from wine_quality.serving.fe_model_serving import FeatureLookupServing
-
-
 
 # Load project config
 config = ProjectConfig.from_yaml(config_path="../project_config.yml")
