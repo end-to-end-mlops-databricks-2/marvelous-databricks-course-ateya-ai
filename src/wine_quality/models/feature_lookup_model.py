@@ -90,18 +90,26 @@ class FeatureLookUpModel:
         """
         Load training and testing data from Delta tables.
         """
-        self.train_set = self.spark.table(f"{self.catalog_name}.{self.schema_name}.train_set").drop(
-            "fixed_acidity", "citric_acid", "volatile_acidity"
-        )
+        # Load train and test sets
+        self.train_set = self.spark.table(f"{self.catalog_name}.{self.schema_name}.train_set")
         self.test_set = self.spark.table(f"{self.catalog_name}.{self.schema_name}.test_set").toPandas()
 
+        # Cast columns to appropriate types
+
+        # Check if columns exist before casting
+        columns_to_cast = ["fixed_acidity", "citric_acid", "volatile_acidity"]
+        for col in columns_to_cast:
+            if col not in self.train_set.columns:
+                raise ValueError(f"Column {col} not found in DataFrame")
         self.train_set = (
             self.train_set.withColumn("fixed_acidity", self.train_set["fixed_acidity"].cast("DOUBLE"))
             .withColumn("citric_acid", self.train_set["citric_acid"].cast("DOUBLE"))
             .withColumn("volatile_acidity", self.train_set["volatile_acidity"].cast("DOUBLE"))
+            .withColumn("Id", self.train_set["Id"].cast("string"))
         )
-        self.train_set = self.train_set.withColumn("Id", self.train_set["Id"].cast("string"))
 
+        # Drop columns if necessary (ensure this is intended)
+        self.train_set = self.train_set.drop("fixed_acidity", "citric_acid", "volatile_acidity")
         logger.info("✅ Data successfully loaded.")
 
     def feature_engineering(self):
@@ -177,7 +185,7 @@ class FeatureLookUpModel:
             logger.info(f"📊 \nClassification Report: \n{report}")
 
             # Log parameters and metrics
-            mlflow.log_param("model_type", "LightGBM Clasisifier with preprocessing")
+            mlflow.log_param("model_type", "LightGBM Classifier with preprocessing")
             mlflow.log_params(self.parameters)
             mlflow.log_metric("Accuracy Score", accuracy)
             mlflow.log_metric("ROC AUC SCORE", roc_auc)
