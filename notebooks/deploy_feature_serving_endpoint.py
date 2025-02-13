@@ -1,9 +1,14 @@
 # Databricks notebook source
 # Databricks notebook source
 import os
+from pyspark.sql import SparkSession
+from pyspark.dbutils import DBUtils
 
-from house_price.config import ProjectConfig
-from house_price.serving.feature_serving import FeatureServing
+spark = SparkSession.builder.getOrCreate()
+dbutils = DBUtils(spark)
+
+from wine_quality.config import ProjectConfig
+from wine_quality.serving.feature_serving import FeatureServing
 
 # Load project config
 config = ProjectConfig.from_yaml(config_path="../project_config.yml")
@@ -46,4 +51,3 @@ print(f"Response Text: {response_text}")
 # Run a load test with 10 requests
 average_latency = feature_manager.load_test(num_requests=10)
 print(f"Average Latency per Request: {average_latency} seconds")
-

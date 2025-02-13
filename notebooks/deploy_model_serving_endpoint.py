@@ -1,15 +1,15 @@
 # Databricks notebook source
 # Databricks notebook source
 import os
-
-from pyspark.sql import SparkSession
-from pyspark.dbutils import DBUtils
-
-from house_price.config import ProjectConfig
-from house_price.serving.model_serving import ModelServing
-import requests
-from typing import List, Dict
 import time
+from typing import Dict, List
+
+import requests
+from pyspark.dbutils import DBUtils
+from pyspark.sql import SparkSession
+
+from wine_quality.config import ProjectConfig
+from wine_quality.serving.model_serving import ModelServing
 
 # spark session
 
@@ -27,8 +27,9 @@ schema_name = config.schema_name
 
 # COMMAND ----------
 # Initialize feature store manager
-model_serving = ModelServing(model_name=f"{catalog_name}.{schema_name}.house_price_model_basic",
-                             endpoint_name="house-prices-model-serving")
+model_serving = ModelServing(
+    model_name=f"{catalog_name}.{schema_name}.wine_quality_model_basic", endpoint_name="wine-quality-model-serving"
+)
 
 # COMMAND ----------
 # Deploy the model serving endpoint
@@ -38,34 +39,18 @@ model_serving.deploy_or_update_serving_endpoint()
 # COMMAND ----------
 # Create a sample request body
 required_columns = [
-    "LotFrontage",
-    "LotArea",
-    "OverallQual",
-    "OverallCond",
-    "YearBuilt",
-    "YearRemodAdd",
-    "MasVnrArea",
-    "TotalBsmtSF",
-    "GrLivArea",
-    "GarageCars",
-    "MSZoning",
-    "Street",
-    "Alley",
-    "LotShape",
-    "LandContour",
-    "Neighborhood",
-    "Condition1",
-    "BldgType",
-    "HouseStyle",
-    "RoofStyle",
-    "Exterior1st",
-    "Exterior2nd",
-    "MasVnrType",
-    "Foundation",
-    "Heating",
-    "CentralAir",
-    "SaleType",
-    "SaleCondition",
+    "type",
+    "alcohol",
+    "density",
+    "volatile_acidity",
+    "chlorides",
+    "residual_sugar",
+    "free_sulfur_dioxide",
+    "pH",
+    "total_sulfur_dioxide",
+    "sulphates",
+    "citric_acid",
+    "fixed_acidity",
 ]
 
 # Sample 1000 records from the training set
@@ -81,22 +66,41 @@ dataframe_records = [[record] for record in sampled_records]
 """
 Each body should be list of json with columns
 
-[{'LotFrontage': 78.0,
-  'LotArea': 9317,
-  'OverallQual': 6,
-  'OverallCond': 5,
-  'YearBuilt': 2006,
-  'Exterior1st': 'VinylSd',
-  'Exterior2nd': 'VinylSd',
-  'MasVnrType': 'None',
-  'Foundation': 'PConc',
-  'Heating': 'GasA',
-  'CentralAir': 'Y',
-  'SaleType': 'WD',
-  'SaleCondition': 'Normal'}]
+[
+{'type': 'red',
+  'alcohol': 9.1,
+  'density': 0.997,
+  'volatile_acidity': 0.65,
+  'chlorides': 0.07,
+  'residual_sugar': 1.8,
+  'free_sulfur_dioxide': 13,
+  'pH': 3.44,
+  'total_sulfur_dioxide': 40,
+  'sulphates': 0.6,
+  'citric_acid': 0.18,
+  'fixed_acidity': 7.1,
+  'quality': 0}
+  },
+
+{'type': 'white',
+  'alcohol': 11.9,
+  'density': 0.99064,
+  'volatile_acidity': 0.25,
+  'chlorides': 0.045,
+  'residual_sugar': 2.3,
+  'free_sulfur_dioxide': 40,
+  'pH': 3.16,
+  'total_sulfur_dioxide': 118,
+  'sulphates': 0.48,
+  'citric_acid': 0.45,
+  'fixed_acidity': 7,
+  'quality': 1}
+  }
+  ]
 """
 
-def call_endpoint(self, record: List(Dict)):
+
+def call_endpoint(self, record: List(Dict)):  # type: ignore
     """
     Calls the model serving endpoint with a given input record.
     """
@@ -109,6 +113,7 @@ def call_endpoint(self, record: List(Dict)):
     )
     return response.status_code, response.text
 
+
 status_code, response_text = call_endpoint(dataframe_records[0])
 print(f"Response Status: {status_code}")
 print(f"Response Text: {response_text}")
@@ -119,4 +124,3 @@ print(f"Response Text: {response_text}")
 for i in range(len(dataframe_records)):
     call_endpoint(dataframe_records[i])
     time.sleep(0.2)
-

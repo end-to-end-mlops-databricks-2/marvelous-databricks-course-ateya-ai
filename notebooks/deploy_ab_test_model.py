@@ -4,12 +4,11 @@
 import hashlib
 
 import mlflow
+from databricks.sdk import WorkspaceClient
+from wine_quality.config import ProjectConfig, Tags
+from wine_quality.models.basic_model import BasicModel
 from mlflow.models import infer_signature
 from pyspark.sql import SparkSession
-from databricks.sdk import WorkspaceClient
-
-from house_price.config import ProjectConfig, Tags
-from house_price.models.basic_model import BasicModel
 
 # COMMAND ----------
 # Default profile:
@@ -26,7 +25,7 @@ tags = Tags(**{"git_sha": "abcd12345", "branch": "week3"})
 # Train & register model A with the config path
 basic_model_a = BasicModel(config=config, tags=tags, spark=spark)
 basic_model_a.paramaters = config.parameters_a
-basic_model_a.model_name = f"{catalog_name}.{schema_name}.house_prices_model_basic_A"
+basic_model_a.model_name = f"{catalog_name}.{schema_name}.wine_qualities_model_basic_A"
 basic_model_a.load_data()
 basic_model_a.prepare_features()
 basic_model_a.train()
@@ -38,7 +37,7 @@ model_A = mlflow.sklearn.load_model(f"models:/{basic_model_a.model_name}@latest-
 # Train & register model B with the config path
 basic_model_b = BasicModel(config=config, tags=tags, spark=spark)
 basic_model_b.paramaters = config.parameters_b
-basic_model_b.model_name = f"{catalog_name}.{schema_name}.house_prices_model_basic_B"
+basic_model_b.model_name = f"{catalog_name}.{schema_name}.wine_qualities_model_basic_B"
 basic_model_b.load_data()
 basic_model_b.prepare_features()
 basic_model_b.train()
@@ -48,7 +47,7 @@ model_B = mlflow.sklearn.load_model(f"models:/{basic_model_b.model_name}@latest-
 
 
 # COMMAND ----------
-class HousePriceModelWrapper(mlflow.pyfunc.PythonModel):
+class WineQualityModelWrapper(mlflow.pyfunc.PythonModel):
     def __init__(self, models):
         self.models = models
         self.model_a = models[0]
@@ -76,14 +75,14 @@ X_test = test_set[config.num_features + config.cat_features + ["Id"]]
 
 # COMMAND ----------
 models = [model_A, model_B]
-wrapped_model = HousePriceModelWrapper(models)  # we pass the loaded models to the wrapper
+wrapped_model = WineQualityModelWrapper(models)  # we pass the loaded models to the wrapper
 example_input = X_test.iloc[0:1]  # Select the first row for prediction as example
 example_prediction = wrapped_model.predict(context=None, model_input=example_input)
 print("Example Prediction:", example_prediction)
 
 # COMMAND ----------
-mlflow.set_experiment(experiment_name="/Shared/house-prices-ab-testing")
-model_name = f"{catalog_name}.{schema_name}.house_prices_model_pyfunc_ab_test"
+mlflow.set_experiment(experiment_name="/Shared/wine-qualities-ab-testing")
+model_name = f"{catalog_name}.{schema_name}.wine_qualities_model_pyfunc_ab_test"
 
 with mlflow.start_run() as run:
     run_id = run.info.run_id
@@ -91,10 +90,10 @@ with mlflow.start_run() as run:
     dataset = mlflow.data.from_spark(train_set_spark, table_name=f"{catalog_name}.{schema_name}.train_set", version="0")
     mlflow.log_input(dataset, context="training")
     mlflow.pyfunc.log_model(
-        python_model=wrapped_model, artifact_path="pyfunc-house-price-model-ab", signature=signature
+        python_model=wrapped_model, artifact_path="pyfunc-wine-quality-model-ab", signature=signature
     )
 model_version = mlflow.register_model(
-    model_uri=f"runs:/{run_id}/pyfunc-house-price-model-ab", name=model_name, tags=tags.dict()
+    model_uri=f"runs:/{run_id}/pyfunc-wine-quality-model-ab", name=model_name, tags=tags.dict()
 )
 
 # COMMAND ----------
@@ -105,13 +104,12 @@ served_entities = [
         scale_to_zero_enabled=True,
         workload_size="Small",
         entity_version=model_version.version,
-        )
-    ]
+    )
+]
 
 workspace.serving_endpoints.create(
-    name="house-price-model-ab",
+    name="wine-quality-model-ab",
     config=EndpointCoreConfigInput(
         served_entities=served_entities,
-        ),
-    )
-
+    ),
+)
