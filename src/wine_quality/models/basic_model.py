@@ -50,6 +50,7 @@ class BasicModel:
         self.catalog_name = self.config.catalog_name
         self.schema_name = self.config.schema_name
         self.experiment_name = self.config.experiment_name_basic
+        self.model_name = f"{self.catalog_name}.{self.schema_name}.wine_quality_model_basic"
         self.tags = tags.dict()
 
     def load_data(self):
@@ -155,7 +156,7 @@ class BasicModel:
         logger.info("🔄 Registering the model in UC...")
         registered_model = mlflow.register_model(
             model_uri=f"runs:/{self.run_id}/lightgbm-pipeline-model",
-            name=f"{self.catalog_name}.{self.schema_name}.wine_quality_model_basic",
+            name=self.model_name,
             tags=self.tags,
         )
         logger.info(f"✅ Model registered as version {registered_model.version}.")
@@ -164,7 +165,7 @@ class BasicModel:
 
         client = MlflowClient()
         client.set_registered_model_alias(
-            name=f"{self.catalog_name}.{self.schema_name}.wine_quality_model_basic",
+            name=self.model_name,
             alias="latest-model",
             version=latest_version,
         )
