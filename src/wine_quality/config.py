@@ -11,10 +11,12 @@ class ProjectConfig(BaseModel):
     catalog_name: str
     schema_name: str
     parameters: Dict[str, Any]
+    parameters_a: Optional[Dict[str, Any]]  # for AB testing
+    parameters_b: Optional[Dict[str, Any]]  # for AB testing
     experiment_name_basic: Optional[str]
     experiment_name_custom: Optional[str]
     experiment_name_fe: Optional[str]
-    ab_test: Dict[str, Any]  # type: ignore # Dictionary to hold A/B test parameters
+    # ab_test: Dict[str, Any]  # type: ignore # Dictionary to hold A/B test parameters
 
     @classmethod
     def from_yaml(cls, config_path: str):
