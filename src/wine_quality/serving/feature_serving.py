@@ -1,3 +1,4 @@
+from databricks import feature_engineering
 from databricks.feature_engineering import FeatureLookup
 from databricks.sdk import WorkspaceClient
 from databricks.sdk.service.catalog import (
@@ -15,7 +16,9 @@ class FeatureServing:
         self.feature_table_name = feature_table_name
         self.workspace = WorkspaceClient()
         self.feature_spec_name = feature_spec_name
+        self.create_online_table = f"{self.feature_table_name}_online"
         self.endpoint_name = endpoint_name
+        self.fe = feature_engineering.FeatureEngineeringClient()
 
     def create_online_table(self):
         """
@@ -23,7 +26,7 @@ class FeatureServing:
         """
         spec = OnlineTableSpec(
             primary_key_columns=["Id"],
-            source_table_full_name=f"{self.feature_table_name}_online",
+            source_table_full_name=self.feature_table_name,
             run_triggered=OnlineTableSpecTriggeredSchedulingPolicy.from_dict({"triggered": "true"}),
             perform_full_copy=False,
         )
