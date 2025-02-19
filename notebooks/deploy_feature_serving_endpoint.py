@@ -1,19 +1,21 @@
 # Databricks notebook source
-# MAGIC %pip install  /Volumes/mlops_dev/ateyatec/packages/wine_quality-0.0.3-py3-none-any.whl 
+# MAGIC %pip install  /Volumes/mlops_dev/ateyatec/packages/wine_quality-0.0.3-py3-none-any.whl
 
 # COMMAND ----------
 
-dbutils.library.restartPython()
+# dbutils.library.restartPython()
 
 # COMMAND ----------
 
 import os
 import time
+
 import mlflow
+import pandas as pd
+import requests
+from databricks import feature_engineering
 from pyspark.dbutils import DBUtils
 from pyspark.sql import SparkSession
-from databricks import feature_engineering
-import pandas as pd
 
 from wine_quality.config import ProjectConfig
 from wine_quality.serving.feature_serving import FeatureServing
@@ -51,7 +53,7 @@ model = mlflow.sklearn.load_model(f"models:/{catalog_name}.{schema_name}.wine_qu
 
 # COMMAND ----------
 
-preds_df = df[["Id","fixed_acidity", "citric_acid", "volatile_acidity"]]
+preds_df = df[["Id", "fixed_acidity", "citric_acid", "volatile_acidity"]]
 preds_df["Predicted_WineQuality"] = model.predict(df[config.cat_features + config.num_features])
 preds_df = spark.createDataFrame(preds_df)
 
@@ -76,43 +78,35 @@ feature_serving = FeatureServing(
 feature_serving.create_online_table()
 
 # COMMAND ----------
-
-# Load data and model
-feature_manager.load_data()
-feature_manager.load_model()
-
-# COMMAND ----------
-
-# Create feature table and enable Change Data Feed
-feature_manager.create_feature_table()
-
-# COMMAND ----------
-
-# Create online table
-feature_manager.create_online_table()
-
-# COMMAND ----------
-
 # Create feature spec
-feature_manager.create_feature_spec()
+feature_serving.create_feature_spec()
 
 # COMMAND ----------
-
 # Deploy feature serving endpoint
-feature_manager.deploy_serving_endpoint()
+feature_serving.deploy_or_update_serving_endpoint()
 
 # COMMAND ----------
 
-# Test feature serving
-os.environ["TOKEN"] = dbutils.notebook.entry_point.getDbutils().notebook().getContext().apiToken().get()
+start_time = time.time()
+serving_endpoint = f"https://{os.environ['DBR_HOST']}/serving-endpoints/{endpoint_name}/invocations"
+response = requests.post(
+    f"{serving_endpoint}",
+    headers={"Authorization": f"Bearer {os.environ['DBR_TOKEN']}"},
+    json={"dataframe_records": [{"Id": "182"}]},
+)
 
-entity_id = "182"
-status_code, response_text = feature_manager.call_endpoint(entity_id)
-print(f"Response Status: {status_code}")
-print(f"Response Text: {response_text}")
+end_time = time.time()
+execution_time = end_time - start_time
+
+print("Response status:", response.status_code)
+print("Reponse text:", response.text)
+print("Execution time:", execution_time, "seconds")
 
 # COMMAND ----------
+# another way to call the endpoint
 
-# Run a load test with 10 requests
-average_latency = feature_manager.load_test(num_requests=10)
-print(f"Average Latency per Request: {average_latency} seconds")
+response = requests.post(
+    f"{serving_endpoint}",
+    headers={"Authorization": f"Bearer {os.environ['DBR_TOKEN']}"},
+    json={"dataframe_split": {"columns": ["Id"], "data": [["182"]]}},
+)

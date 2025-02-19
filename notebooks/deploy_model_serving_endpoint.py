@@ -3,14 +3,13 @@
 
 # COMMAND ----------
 
-dbutils.library.restartPython()
+# dbutils.library.restartPython()
 
 # COMMAND ----------
 
 import os
 import time
 from typing import Dict, List
-
 
 import requests
 from pyspark.dbutils import DBUtils
@@ -136,11 +135,9 @@ print(f"Response Text: {response_text}")
 # "load test"
 
 for i in range(len(dataframe_records)):
-    status_code, response_text=call_endpoint(dataframe_records[i])
+    status_code, response_text = call_endpoint(dataframe_records[i])
     time.sleep(0.2)
     print(f"Response Status: {status_code}")
     print(f"Response Text: {response_text}")
 
 # COMMAND ----------
-
-

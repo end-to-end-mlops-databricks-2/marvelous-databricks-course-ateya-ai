@@ -3,23 +3,24 @@
 
 # COMMAND ----------
 
-dbutils.library.restartPython()
+# dbutils.library.restartPython()
 
 # COMMAND ----------
 
 import os
+import time
+from typing import Dict, List
+
 import requests
 from loguru import logger
 from pyspark.dbutils import DBUtils
-import time
 from pyspark.sql import SparkSession
-from typing import Dict, List
 
-from wine_quality.config import ProjectConfig, Tags
+from wine_quality.config import ProjectConfig
 from wine_quality.serving.fe_model_serving import FeatureLookupServing
 
 spark = SparkSession.builder.getOrCreate()
-dbutils
+
 # Load project config
 config = ProjectConfig.from_yaml(config_path="../project_config.yml")
 catalog_name = config.catalog_name
@@ -75,6 +76,7 @@ logger.info(dataframe_records[0])
 
 # COMMAND ----------
 
+
 def call_endpoint(record: List[Dict]):
     """
     Calls the model serving endpoint with a given input record.
@@ -87,7 +89,6 @@ def call_endpoint(record: List[Dict]):
         json={"dataframe_records": record},
     )
     return response.status_code, response.text
-
 
 
 # COMMAND ----------
@@ -104,11 +105,9 @@ print(f"Response Text: {response_text}")
 # "load test"
 
 for i in range(len(dataframe_records)):
-    status_code, response_text=call_endpoint(dataframe_records[i])
+    status_code, response_text = call_endpoint(dataframe_records[i])
     time.sleep(0.2)
     print(f"Response Status: {status_code}")
     print(f"Response Text: {response_text}")
 
 # COMMAND ----------
-
-

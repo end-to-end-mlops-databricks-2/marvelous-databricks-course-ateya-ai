@@ -1,9 +1,9 @@
 # Databricks notebook source
-# MAGIC %pip install  /Volumes/mlops_dev/ateyatec/packages/wine_quality-0.0.3-py3-none-any.whl 
+# MAGIC %pip install  /Volumes/mlops_dev/ateyatec/packages/wine_quality-0.0.3-py3-none-any.whl
 
 # COMMAND ----------
 
-dbutils.library.restartPython()
+# dbutils.library.restartPython()
 
 # COMMAND ----------
 
@@ -58,6 +58,7 @@ model_B = mlflow.sklearn.load_model(f"models:/{basic_model_b.model_name}@latest-
 
 
 # COMMAND ----------
+
 
 class WineQualityModelWrapper(mlflow.pyfunc.PythonModel):
     def __init__(self, models):
@@ -131,5 +132,3 @@ workspace.serving_endpoints.create(
 )
 
 # COMMAND ----------
-
-
