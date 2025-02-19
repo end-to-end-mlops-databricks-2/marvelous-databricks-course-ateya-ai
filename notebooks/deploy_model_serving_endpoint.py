@@ -1,8 +1,16 @@
 # Databricks notebook source
-# Databricks notebook source
+# MAGIC %pip install  /Volumes/mlops_dev/ateyatec/packages/wine_quality-0.0.3-py3-none-any.whl
+
+# COMMAND ----------
+
+dbutils.library.restartPython()
+
+# COMMAND ----------
+
 import os
 import time
 from typing import Dict, List
+
 
 import requests
 from pyspark.dbutils import DBUtils
@@ -21,22 +29,26 @@ os.environ["DBR_TOKEN"] = dbutils.notebook.entry_point.getDbutils().notebook().g
 os.environ["DBR_HOST"] = spark.conf.get("spark.databricks.workspaceUrl")
 
 # Load project config
+endpoint_name = "wine-quality-model-serving"
 config = ProjectConfig.from_yaml(config_path="../project_config.yml")
 catalog_name = config.catalog_name
 schema_name = config.schema_name
 
 # COMMAND ----------
+
 # Initialize feature store manager
 model_serving = ModelServing(
     model_name=f"{catalog_name}.{schema_name}.wine_quality_model_basic", endpoint_name="wine-quality-model-serving"
 )
 
 # COMMAND ----------
+
 # Deploy the model serving endpoint
 model_serving.deploy_or_update_serving_endpoint()
 
 
 # COMMAND ----------
+
 # Create a sample request body
 required_columns = [
     "type",
@@ -61,6 +73,7 @@ sampled_records = test_set[required_columns].sample(n=100, replace=True).to_dict
 dataframe_records = [[record] for record in sampled_records]
 
 # COMMAND ----------
+
 # Call the endpoint with one sample record
 
 """
@@ -100,11 +113,11 @@ Each body should be list of json with columns
 """
 
 
-def call_endpoint(self, record: List(Dict)):  # type: ignore
+def call_endpoint(record: List[Dict]):  # type: ignore
     """
     Calls the model serving endpoint with a given input record.
     """
-    serving_endpoint = f"https://{os.environ['DBR_HOST']}/serving-endpoints/{self.endpoint_name}/invocations"
+    serving_endpoint = f"https://{os.environ['DBR_HOST']}/serving-endpoints/{endpoint_name}/invocations"
 
     response = requests.post(
         serving_endpoint,
@@ -119,8 +132,15 @@ print(f"Response Status: {status_code}")
 print(f"Response Text: {response_text}")
 
 # COMMAND ----------
+
 # "load test"
 
 for i in range(len(dataframe_records)):
-    call_endpoint(dataframe_records[i])
+    status_code, response_text=call_endpoint(dataframe_records[i])
     time.sleep(0.2)
+    print(f"Response Status: {status_code}")
+    print(f"Response Text: {response_text}")
+
+# COMMAND ----------
+
+

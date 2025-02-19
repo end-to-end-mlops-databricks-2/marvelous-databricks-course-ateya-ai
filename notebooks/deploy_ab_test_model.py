@@ -1,5 +1,11 @@
 # Databricks notebook source
-# Databricks notebook source
+# MAGIC %pip install  /Volumes/mlops_dev/ateyatec/packages/wine_quality-0.0.3-py3-none-any.whl 
+
+# COMMAND ----------
+
+dbutils.library.restartPython()
+
+# COMMAND ----------
 
 import hashlib
 
@@ -13,6 +19,7 @@ from wine_quality.config import ProjectConfig, Tags
 from wine_quality.models.basic_model import BasicModel
 
 # COMMAND ----------
+
 # Default profile:
 mlflow.set_tracking_uri("databricks")
 mlflow.set_registry_uri("databricks-uc")
@@ -24,6 +31,7 @@ spark = SparkSession.builder.getOrCreate()
 tags = Tags(**{"git_sha": "abcd12345", "branch": "week3"})
 
 # COMMAND ----------
+
 # Train & register model A with the config path
 basic_model_a = BasicModel(config=config, tags=tags, spark=spark)
 basic_model_a.paramaters = config.parameters_a
@@ -36,6 +44,7 @@ basic_model_a.register_model()
 model_A = mlflow.sklearn.load_model(f"models:/{basic_model_a.model_name}@latest-model")
 
 # COMMAND ----------
+
 # Train & register model B with the config path
 basic_model_b = BasicModel(config=config, tags=tags, spark=spark)
 basic_model_b.paramaters = config.parameters_b
@@ -49,6 +58,7 @@ model_B = mlflow.sklearn.load_model(f"models:/{basic_model_b.model_name}@latest-
 
 
 # COMMAND ----------
+
 class WineQualityModelWrapper(mlflow.pyfunc.PythonModel):
     def __init__(self, models):
         self.models = models
@@ -68,6 +78,7 @@ class WineQualityModelWrapper(mlflow.pyfunc.PythonModel):
 
 
 # COMMAND ----------
+
 train_set_spark = spark.table(f"{catalog_name}.{schema_name}.train_set")
 train_set = train_set_spark.toPandas()
 test_set = spark.table(f"{catalog_name}.{schema_name}.test_set").toPandas()
@@ -76,6 +87,7 @@ X_test = test_set[config.num_features + config.cat_features + ["Id"]]
 
 
 # COMMAND ----------
+
 models = [model_A, model_B]
 wrapped_model = WineQualityModelWrapper(models)  # we pass the loaded models to the wrapper
 example_input = X_test.iloc[0:1]  # Select the first row for prediction as example
@@ -83,6 +95,7 @@ example_prediction = wrapped_model.predict(context=None, model_input=example_inp
 print("Example Prediction:", example_prediction)
 
 # COMMAND ----------
+
 mlflow.set_experiment(experiment_name="/Shared/wine-qualities-ab-testing")
 model_name = f"{catalog_name}.{schema_name}.wine_qualities_model_pyfunc_ab_test"
 
@@ -99,6 +112,7 @@ model_version = mlflow.register_model(
 )
 
 # COMMAND ----------
+
 workspace = WorkspaceClient()
 served_entities = [
     ServedEntityInput(
@@ -115,3 +129,7 @@ workspace.serving_endpoints.create(
         served_entities=served_entities,
     ),
 )
+
+# COMMAND ----------
+
+
