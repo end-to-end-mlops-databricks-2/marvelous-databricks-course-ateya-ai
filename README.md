@@ -17,6 +17,32 @@ Marvelous MLOps End-to-end MLOps with Databricks course
 In this course, we use Databricks 15.4 LTS runtime, which uses Python 3.11.
 In our examples, we use UV. Check out the documentation on how to install it: https://docs.astral.sh/uv/getting-started/installation/
 
+Datasets used in previous cohort as examples:
+Use Case: Real Estate Price Prediction
+Dataset: House Prices (Kaggle)
+
+We will build 3 ML services:
+
+1️⃣ Real-time model: Price prediction using only user-inputted features.
+2️⃣ Hybrid real-time model: Some features from the user, some from a database lookup.
+3️⃣ Batch prediction service: Precomputed prices stored in an online table
+
+https://www.kaggle.com/datasets/krantiswalke/bankfullcsv
+
+https://www.kaggle.com/datasets/microize/newyork-yellow-taxi-trip-data-2020-2019
+
+https://www.kaggle.com/code/nimapourmoradi/red-wine-quality
+
+https://www.kaggle.com/datasets/gregorut/videogamesales
+
+https://github.com/end-to-end-mlops-databricks-2/course-code-hub
+
+# Data
+
+Using the [**House Price Dataset**](https://www.kaggle.com/c/house-prices-advanced-regression-techniques/data) from Kaggle.
+
+This data can be used to build a classification model to calculate house price.
+
 To create a new environment and create a lockfile, run:
 
 ```

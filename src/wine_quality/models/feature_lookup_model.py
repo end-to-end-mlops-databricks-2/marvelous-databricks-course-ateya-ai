@@ -8,7 +8,7 @@ from lightgbm import LGBMClassifier
 from loguru import logger
 from mlflow.models import infer_signature
 from mlflow.tracking import MlflowClient
-from pyspark.sql import SparkSession
+from pyspark.sql import DataFrame, SparkSession
 from sklearn.compose import ColumnTransformer
 from sklearn.metrics import (
     accuracy_score,
@@ -22,6 +22,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
 
 from wine_quality.config import ProjectConfig, Tags
+from wine_quality.utils import calculate_misclassification_cost
 
 
 class FeatureLookUpModel:
@@ -242,3 +243,109 @@ class FeatureLookUpModel:
         except Exception as e:
             logger.error(f"Failed to load model and make predictions: {e}")
             raise
+
+    def update_feature_table(self):
+        """
+        Updates the wine_quality_features table with the latest records from train and test sets.
+        """
+        queries = [
+            f"""
+            WITH max_timestamp AS (
+                SELECT MAX(update_timestamp_utc) AS max_update_timestamp
+                FROM {self.config.catalog_name}.{self.config.schema_name}.train_set
+            )
+            INSERT INTO {self.feature_table_name}
+            SELECT Id, fixed_acidity, citric_acid, volatile_acidity
+            FROM {self.config.catalog_name}.{self.config.schema_name}.train_set
+            WHERE update_timestamp_utc == (SELECT max_update_timestamp FROM max_timestamp)
+            """,
+            f"""
+            WITH max_timestamp AS (
+                SELECT MAX(update_timestamp_utc) AS max_update_timestamp
+                FROM {self.config.catalog_name}.{self.config.schema_name}.test_set
+            )
+            INSERT INTO {self.feature_table_name}
+            SELECT Id, fixed_acidity, citric_acid, volatile_acidity
+            FROM {self.config.catalog_name}.{self.config.schema_name}.test_set
+            WHERE update_timestamp_utc == (SELECT max_update_timestamp FROM max_timestamp)
+            """,
+        ]
+
+        for query in queries:
+            logger.info("Executing SQL update query...")
+            self.spark.sql(query)
+        logger.info("Wine features table updated successfully.")
+
+    def model_improved(self, test_set: DataFrame):
+        """
+        Evaluate the model performance on the test set.
+        """
+        X_test = test_set.drop(self.config.target)
+
+        predictions_latest = self.load_latest_model_and_predict(X_test).withColumnRenamed(
+            "prediction", "prediction_latest"
+        )
+
+        current_best_model_uri = f"runs:/{self.run_id}/lightgbm-pipeline-model-fe"
+        predictions_current = self.fe.score_batch(model_uri=current_best_model_uri, df=X_test).withColumnRenamed(
+            "prediction", "prediction_current"
+        )
+
+        test_set = test_set.select("Id", "quality")
+
+        logger.info("Predictions are ready.")
+
+        # Join the DataFrames on the 'Id' column
+        df = test_set.join(predictions_current, on="Id").join(predictions_latest, on="Id")
+
+        # Convert columns to arrays for metric calculations
+        quality = df["quality"].to_numpy()
+        prediction_current = df["prediction_current"].to_numpy()
+        prediction_latest = df["prediction_latest"].to_numpy()
+
+        # Calculate the F1 score, Accuracy, ROC AUC
+        f1_score_current = f1_score(quality, prediction_current)
+        f1_score_latest = f1_score(quality, prediction_latest)
+
+        logger.info(f"F1 Score for Current Model: {f1_score_current}")
+        logger.info(f"F1 Score for Latest Model: {f1_score_latest}")
+
+        # Calculate the Accuracy for each model
+        accuracy_current = accuracy_score(quality, prediction_current)
+        accuracy_latest = accuracy_score(quality, prediction_latest)
+
+        logger.info(f"Accuracy for Current Model: {accuracy_current}")
+        logger.info(f"Accuracy for Latest Model: {accuracy_latest}")
+
+        # Calculate the misclassification cost for each model
+        miscal_cost_current = calculate_misclassification_cost(quality, prediction_current)
+        miscal_cost_latest = calculate_misclassification_cost(quality, prediction_latest)
+
+        logger.info(f"Misclassification Cost for Current Model: ${miscal_cost_current}")
+        logger.info(f"Misclassification Cost for Latest Model: ${miscal_cost_latest}")
+
+        # Calculate the ROC AUC for each model
+        roc_auc_current = roc_auc_score(quality, prediction_current)
+        roc_auc_latest = roc_auc_score(quality, prediction_latest)
+
+        logger.info(f"ROC AUC for Current Model: {roc_auc_current}")
+        logger.info(f"ROC AUC for Latest Model: {roc_auc_latest}")
+
+        # Compare models based on AUROC, F1 score, and misclassification cost
+        if (
+            roc_auc_latest > roc_auc_current
+            and f1_score_latest > f1_score_current
+            and miscal_cost_latest < miscal_cost_current
+        ):
+            logger.info("Latest Model performs better. Registering latest model.")
+            return True
+        elif (
+            roc_auc_latest < roc_auc_current
+            and f1_score_latest < f1_score_current
+            and miscal_cost_latest > miscal_cost_current
+        ):
+            logger.info("New Model performs worse. Keeping the old model.")
+            return False
+        else:
+            logger.info("Both models have similar performance.")
+            return False

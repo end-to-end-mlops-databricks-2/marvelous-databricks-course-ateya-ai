@@ -1,3 +1,6 @@
+import time
+
+import numpy as np
 import pandas as pd
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import current_timestamp, to_utc_timestamp
@@ -98,3 +101,61 @@ class DataProcessor:
             f"ALTER TABLE {self.config.catalog_name}.{self.config.schema_name}.test_set "
             "SET TBLPROPERTIES (delta.enableChangeDataFeed = true);"
         )
+
+
+def generate_synthetic_data(df, num_rows=10):
+    """Generates synthetic data based on the distribution of the input DataFrame."""
+    synthetic_data = pd.DataFrame()
+
+    for column in df.columns:
+        if column == "Id":
+            continue
+
+        if pd.api.types.is_numeric_dtype(df[column]):
+            try:
+                synthetic_data[column] = np.random.normal(df[column].mean(), df[column].std(), num_rows)
+            except ValueError as err:
+                raise ValueError(f"Cannot generate synthetic data for column {column}.") from err
+        elif pd.api.types.is_categorical_dtype(df[column]) or pd.api.types.is_object_dtype(df[column]):
+            try:
+                synthetic_data[column] = np.random.choice(
+                    df[column].unique(), num_rows, p=df[column].value_counts(normalize=True)
+                )
+            except ValueError as err:
+                raise ValueError(f"Cannot generate synthetic data for column {column}.") from err
+
+        elif pd.api.types.is_datetime64_any_dtype(df[column]):
+            min_date, max_date = df[column].min(), df[column].max()
+            synthetic_data[column] = pd.to_datetime(
+                np.random.randint(min_date.value, max_date.value, num_rows)
+                if min_date < max_date
+                else [min_date] * num_rows
+            )
+
+        else:
+            synthetic_data[column] = np.random.choice(df[column], num_rows)
+
+    # Convert relevant numeric columns to integers
+    float_columns = {
+        "alcohol",
+        "density",
+        "volatile_acidity",
+        "chlorides",
+        "residual_sugar",
+        "free_sulfur_dioxide",
+        "pH",
+        "total_sulfur_dioxide",
+        "citric_acid",
+        "fixed_acidity",
+        "sulphates",
+    }
+    for col in float_columns.intersection(df.columns):
+        synthetic_data[col] = pd.to_numeric(synthetic_data[col], errors="coerce")
+        synthetic_data[col] = synthetic_data[col].astype(np.float64)
+
+    synthetic_data["quality"] = synthetic_data["quality"].astype(np.int32)
+
+    timestamp_base = int(time.time() * 1000)
+    synthetic_data["Id"] = [str(timestamp_base + i) for i in range(num_rows)]
+
+    return synthetic_data
