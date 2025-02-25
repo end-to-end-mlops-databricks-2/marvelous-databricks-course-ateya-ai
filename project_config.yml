@@ -9,7 +9,8 @@ acc:
   pipeline_id: 94748db79-f551-49bb-ad4f-f61cac9d91fc
 dev:
   catalog_name: mlops_dev
-  schema_name: wine_quality
+  #schema_name: wine_quality
+  schema_name: ateyatec
   pipeline_id: 0498db79-f551-49bb-ad4f-finac9d91fc
 
 catalog_name: mlops_dev

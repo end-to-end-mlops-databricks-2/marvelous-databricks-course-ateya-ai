@@ -104,20 +104,35 @@ class DataProcessor:
 
 
 def generate_synthetic_data(df, num_rows=10):
-    """Generates synthetic data based on the distribution of the input DataFrame."""
+    """
+    Generates synthetic data based on the distribution of the input DataFrame.
+
+    Parameters:
+        df (pd.DataFrame): The input DataFrame from which to derive distributions.
+        num_rows (int): The number of rows to generate in the synthetic DataFrame.
+
+    Returns:
+        pd.DataFrame: A synthetic DataFrame with the same structure as the input.
+    """
+    if not isinstance(df, pd.DataFrame):
+        raise TypeError("Input `df` must be a pandas DataFrame.")
+
     synthetic_data = pd.DataFrame()
 
     for column in df.columns:
         if column == "Id":
-            continue
+            continue  # Skip the 'Id' column, as it will be generated later
 
         if pd.api.types.is_numeric_dtype(df[column]):
             try:
+                # Generate synthetic data using a normal distribution
                 synthetic_data[column] = np.random.normal(df[column].mean(), df[column].std(), num_rows)
             except ValueError as err:
                 raise ValueError(f"Cannot generate synthetic data for column {column}.") from err
+
         elif pd.api.types.is_categorical_dtype(df[column]) or pd.api.types.is_object_dtype(df[column]):
             try:
+                # Generate synthetic data by sampling from the unique values in the column
                 synthetic_data[column] = np.random.choice(
                     df[column].unique(), num_rows, p=df[column].value_counts(normalize=True)
                 )
@@ -125,14 +140,15 @@ def generate_synthetic_data(df, num_rows=10):
                 raise ValueError(f"Cannot generate synthetic data for column {column}.") from err
 
         elif pd.api.types.is_datetime64_any_dtype(df[column]):
+            # Generate synthetic datetime values within the range of the input column
             min_date, max_date = df[column].min(), df[column].max()
-            synthetic_data[column] = pd.to_datetime(
-                np.random.randint(min_date.value, max_date.value, num_rows)
-                if min_date < max_date
-                else [min_date] * num_rows
-            )
+            if min_date >= max_date:
+                synthetic_data[column] = [min_date] * num_rows  # Handle edge case where min_date == max_date
+            else:
+                synthetic_data[column] = pd.to_datetime(np.random.randint(min_date.value, max_date.value, num_rows))
 
         else:
+            # Fallback: Randomly sample from the column's values
             synthetic_data[column] = np.random.choice(df[column], num_rows)
 
     # Convert relevant numeric columns to integers
@@ -153,8 +169,11 @@ def generate_synthetic_data(df, num_rows=10):
         synthetic_data[col] = pd.to_numeric(synthetic_data[col], errors="coerce")
         synthetic_data[col] = synthetic_data[col].astype(np.float64)
 
-    synthetic_data["quality"] = synthetic_data["quality"].astype(np.int32)
+    # Ensure 'quality' column is of integer type
+    if "quality" in synthetic_data.columns:
+        synthetic_data["quality"] = synthetic_data["quality"].astype(np.int32)
 
+    # Generate unique 'Id' column
     timestamp_base = int(time.time() * 1000)
     synthetic_data["Id"] = [str(timestamp_base + i) for i in range(num_rows)]
 
