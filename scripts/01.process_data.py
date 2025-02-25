@@ -36,8 +36,11 @@ logger.info(yaml.dump(config, default_flow_style=False))
 # Load the house prices dataset
 spark = SparkSession.builder.getOrCreate()
 
+# df = spark.read.csv(
+#     f"/Volumes/{config.catalog_name}/{config.schema_name}/data/data.csv", header=True, inferSchema=True
+# ).toPandas()
 df = spark.read.csv(
-    f"/Volumes/{config.catalog_name}/{config.schema_name}/data/data.csv", header=True, inferSchema=True
+    "/Volumes/mlops_dev/ateyatec/data/data.csv", header=True, inferSchema=True
 ).toPandas()
 
 # Generate synthetic data
