@@ -1,6 +1,7 @@
 import json
 
 import mlflow
+import numpy as np
 from databricks import feature_engineering
 from databricks.feature_engineering import FeatureFunction, FeatureLookup
 from databricks.sdk import WorkspaceClient
@@ -9,6 +10,8 @@ from loguru import logger
 from mlflow.models import infer_signature
 from mlflow.tracking import MlflowClient
 from pyspark.sql import DataFrame, SparkSession
+from pyspark.sql import functions as F
+from pyspark.sql.types import DoubleType
 from sklearn.compose import ColumnTransformer
 from sklearn.metrics import (
     accuracy_score,
@@ -44,8 +47,8 @@ class FeatureLookUpModel:
         self.schema_name = self.config.schema_name
 
         # Define table names and function name
-        self.feature_table_name = f"{self.catalog_name}.{self.schema_name}.wine_quality_features"
-        self.function_name = f"{self.catalog_name}.{self.schema_name}.calculate_total_acidity_index"
+        self.feature_table_name = f"{self.catalog_name}.{self.schema_name}.wine_quality_features_dab"
+        self.function_name = f"{self.catalog_name}.{self.schema_name}.calculate_total_acidity_index_dab"
 
         # MLflow configuration
         self.experiment_name = self.config.experiment_name_fe
@@ -59,14 +62,14 @@ class FeatureLookUpModel:
         CREATE OR REPLACE TABLE {self.feature_table_name}
         (Id STRING NOT NULL, fixed_acidity DOUBLE, citric_acid DOUBLE, volatile_acidity DOUBLE);
         """)
-        self.spark.sql(f"ALTER TABLE {self.feature_table_name} ADD CONSTRAINT wine_quality_pk PRIMARY KEY(Id);")
+        self.spark.sql(f"ALTER TABLE {self.feature_table_name} ADD CONSTRAINT wine_quality_pk_dab PRIMARY KEY(Id);")
         self.spark.sql(f"ALTER TABLE {self.feature_table_name} SET TBLPROPERTIES (delta.enableChangeDataFeed = true);")
 
         self.spark.sql(
-            f"INSERT INTO {self.feature_table_name} SELECT Id, fixed_acidity, citric_acid, volatile_acidity FROM {self.catalog_name}.{self.schema_name}.train_set"
+            f"INSERT INTO {self.feature_table_name} SELECT Id, fixed_acidity, citric_acid, volatile_acidity FROM {self.catalog_name}.{self.schema_name}.train_set_dab"
         )
         self.spark.sql(
-            f"INSERT INTO {self.feature_table_name} SELECT Id, fixed_acidity, citric_acid, volatile_acidity FROM {self.catalog_name}.{self.schema_name}.test_set"
+            f"INSERT INTO {self.feature_table_name} SELECT Id, fixed_acidity, citric_acid, volatile_acidity FROM {self.catalog_name}.{self.schema_name}.test_set_dab"
         )
         logger.info("✅ Feature table created and populated.")
 
@@ -80,8 +83,6 @@ class FeatureLookUpModel:
         RETURNS DOUBLE
         LANGUAGE PYTHON AS
         $$
-        if fixed_acidity < 0 or citric_acid < 0 or volatile_acidity < 0:
-            raise ValueError("All input values must be non-negative.")
         return fixed_acidity + citric_acid - volatile_acidity
         $$
         """)
@@ -92,8 +93,8 @@ class FeatureLookUpModel:
         Load training and testing data from Delta tables.
         """
         # Load train and test sets
-        self.train_set = self.spark.table(f"{self.catalog_name}.{self.schema_name}.train_set")
-        self.test_set = self.spark.table(f"{self.catalog_name}.{self.schema_name}.test_set").toPandas()
+        self.train_set = self.spark.table(f"{self.catalog_name}.{self.schema_name}.train_set_dab")
+        self.test_set = self.spark.table(f"{self.catalog_name}.{self.schema_name}.test_set_dab").toPandas()
 
         # Cast columns to appropriate types
 
@@ -128,7 +129,7 @@ class FeatureLookUpModel:
                 ),
                 FeatureFunction(
                     udf_name=self.function_name,
-                    output_name="total_acidity_index",
+                    output_name="total_acidity_index_dab",
                     input_bindings={
                         "fixed_acidity": "fixed_acidity",
                         "citric_acid": "citric_acid",
@@ -140,13 +141,13 @@ class FeatureLookUpModel:
         )
 
         self.training_df = self.training_set.load_df().toPandas()
-        self.test_set["total_acidity_index"] = (
+        self.test_set["total_acidity_index_dab"] = (
             self.test_set["fixed_acidity"] + self.test_set["citric_acid"] - self.test_set["volatile_acidity"]
         )
 
-        self.X_train = self.training_df[self.num_features + self.cat_features + ["total_acidity_index"]]
+        self.X_train = self.training_df[self.num_features + self.cat_features + ["total_acidity_index_dab"]]
         self.y_train = self.training_df[self.target]
-        self.X_test = self.test_set[self.num_features + self.cat_features + ["total_acidity_index"]]
+        self.X_test = self.test_set[self.num_features + self.cat_features + ["total_acidity_index_dab"]]
         self.y_test = self.test_set[self.target]
 
         logger.info("✅ Feature engineering completed.")
@@ -170,9 +171,20 @@ class FeatureLookUpModel:
             pipeline.fit(self.X_train, self.y_train)
             y_pred = pipeline.predict(self.X_test)
 
+            # Predict probabilities for the positive class
+            y_pred_proba = pipeline.predict_proba(self.X_test)[:, 1]  # Probabilities for class 1
+            y_pred = pipeline.predict(self.X_test)  # Binary labels (0 and 1)
+
+            # Debug: Check unique values in y_test and y_pred
+            logger.info(f"Unique values in y_test: {np.unique(self.y_test)}")
+            logger.info(f"Unique values in y_pred: {np.unique(y_pred)}")
+
+            # Ensure y_test is binary
+            self.y_test = np.where(self.y_test > 0, 1, 0)  # Convert to binary (0 and 1)
+
             # Evaluate metrics
             accuracy = accuracy_score(self.y_test, y_pred)
-            roc_auc = roc_auc_score(self.y_test, y_pred)
+            roc_auc = roc_auc_score(self.y_test, y_pred_proba)  # Use probabilities for ROC AUC
             precision = precision_score(self.y_test, y_pred)
             recall = recall_score(self.y_test, y_pred)
             f1 = f1_score(self.y_test, y_pred)
@@ -204,15 +216,15 @@ class FeatureLookUpModel:
             self.fe.log_model(
                 model=pipeline,
                 flavor=mlflow.sklearn,
-                artifact_path="lightgbm-pipeline-model-fe",
+                artifact_path="lightgbm-pipeline-model-fe-dab",
                 training_set=self.training_set,
                 signature=signature,
             )
 
     def register_model(self):
         registered_model = mlflow.register_model(
-            model_uri=f"runs:/{self.run_id}/lightgbm-pipeline-model-fe",
-            name=f"{self.catalog_name}.{self.schema_name}.wine_quality_model_fe",
+            model_uri=f"runs:/{self.run_id}/lightgbm-pipeline-model-fe-dab",
+            name=f"{self.catalog_name}.{self.schema_name}.wine_quality_model_fe_dab",
             tags=self.tags,
         )
 
@@ -221,7 +233,7 @@ class FeatureLookUpModel:
 
         client = MlflowClient()
         client.set_registered_model_alias(
-            name=f"{self.catalog_name}.{self.schema_name}.wine_quality_model_fe",
+            name=f"{self.catalog_name}.{self.schema_name}.wine_quality_model_fe_dab",
             alias="latest-model",
             version=latest_version,
         )
@@ -237,7 +249,7 @@ class FeatureLookUpModel:
         - predictions: The model's predictions for the input data.
         """
         try:
-            model_uri = f"models:/{self.catalog_name}.{self.schema_name}.wine_quality_model_fe@latest-model"
+            model_uri = f"models:/{self.catalog_name}.{self.schema_name}.wine_quality_model_fe_dab@latest-model"
             predictions = self.fe.score_batch(model_uri=model_uri, df=X)
             return predictions
         except Exception as e:
@@ -252,21 +264,21 @@ class FeatureLookUpModel:
             f"""
             WITH max_timestamp AS (
                 SELECT MAX(update_timestamp_utc) AS max_update_timestamp
-                FROM {self.config.catalog_name}.{self.config.schema_name}.train_set
+                FROM {self.config.catalog_name}.{self.config.schema_name}.train_set_dab
             )
             INSERT INTO {self.feature_table_name}
             SELECT Id, fixed_acidity, citric_acid, volatile_acidity
-            FROM {self.config.catalog_name}.{self.config.schema_name}.train_set
+            FROM {self.config.catalog_name}.{self.config.schema_name}.train_set_dab
             WHERE update_timestamp_utc == (SELECT max_update_timestamp FROM max_timestamp)
             """,
             f"""
             WITH max_timestamp AS (
                 SELECT MAX(update_timestamp_utc) AS max_update_timestamp
-                FROM {self.config.catalog_name}.{self.config.schema_name}.test_set
+                FROM {self.config.catalog_name}.{self.config.schema_name}.test_set_dab
             )
             INSERT INTO {self.feature_table_name}
             SELECT Id, fixed_acidity, citric_acid, volatile_acidity
-            FROM {self.config.catalog_name}.{self.config.schema_name}.test_set
+            FROM {self.config.catalog_name}.{self.config.schema_name}.test_set_dab
             WHERE update_timestamp_utc == (SELECT max_update_timestamp FROM max_timestamp)
             """,
         ]
@@ -280,72 +292,107 @@ class FeatureLookUpModel:
         """
         Evaluate the model performance on the test set.
         """
-        X_test = test_set.drop(self.config.target)
+        try:
+            X_test = test_set.drop(self.config.target)
 
-        predictions_latest = self.load_latest_model_and_predict(X_test).withColumnRenamed(
-            "prediction", "prediction_latest"
-        )
+            predictions_latest = self.load_latest_model_and_predict(X_test).withColumnRenamed(
+                "prediction", "prediction_latest"
+            )
 
-        current_best_model_uri = f"runs:/{self.run_id}/lightgbm-pipeline-model-fe"
-        predictions_current = self.fe.score_batch(model_uri=current_best_model_uri, df=X_test).withColumnRenamed(
-            "prediction", "prediction_current"
-        )
+            current_best_model_uri = (
+                f"models:/{self.catalog_name}.{self.schema_name}.wine_quality_model_fe_dab@latest-model"
+            )
+            predictions_current = self.fe.score_batch(model_uri=current_best_model_uri, df=X_test).withColumnRenamed(
+                "prediction", "prediction_current"
+            )
 
-        test_set = test_set.select("Id", "quality")
+            test_set = test_set.select("Id", "quality")
 
-        logger.info("Predictions are ready.")
+            logger.info("Predictions are ready.")
 
-        # Join the DataFrames on the 'Id' column
-        df = test_set.join(predictions_current, on="Id").join(predictions_latest, on="Id")
+            # Join the DataFrames on the 'Id' column
+            df = test_set.join(predictions_current, on="Id").join(predictions_latest, on="Id")
 
-        # Convert columns to arrays for metric calculations
-        quality = df["quality"].to_numpy()
-        prediction_current = df["prediction_current"].to_numpy()
-        prediction_latest = df["prediction_latest"].to_numpy()
+            # Ensure binary classification
+            df = df.withColumn("quality_binary", F.when(F.col("quality") > 0, 1).otherwise(0))
+            df = df.withColumn("prediction_current_binary", F.when(F.col("prediction_current") > 0.5, 1).otherwise(0))
+            df = df.withColumn("prediction_latest_binary", F.when(F.col("prediction_latest") > 0.5, 1).otherwise(0))
 
-        # Calculate the F1 score, Accuracy, ROC AUC
-        f1_score_current = f1_score(quality, prediction_current)
-        f1_score_latest = f1_score(quality, prediction_latest)
+            # Calculate metrics using Spark SQL functions
+            metrics = (
+                df.groupBy()
+                .agg(
+                    F.avg(F.when(F.col("quality_binary") == F.col("prediction_current_binary"), 1).otherwise(0)).alias(
+                        "accuracy_current"
+                    ),
+                    F.avg(F.when(F.col("quality_binary") == F.col("prediction_latest_binary"), 1).otherwise(0)).alias(
+                        "accuracy_latest"
+                    ),
+                    calculate_f1_score(
+                        F.collect_list("quality_binary"), F.collect_list("prediction_current_binary")
+                    ).alias("f1_score_current"),
+                    calculate_f1_score(
+                        F.collect_list("quality_binary"), F.collect_list("prediction_latest_binary")
+                    ).alias("f1_score_latest"),
+                    calculate_roc_auc(F.collect_list("quality_binary"), F.collect_list("prediction_current")).alias(
+                        "roc_auc_current"
+                    ),
+                    calculate_roc_auc(F.collect_list("quality_binary"), F.collect_list("prediction_latest")).alias(
+                        "roc_auc_latest"
+                    ),
+                )
+                .collect()[0]
+            )
 
-        logger.info(f"F1 Score for Current Model: {f1_score_current}")
-        logger.info(f"F1 Score for Latest Model: {f1_score_latest}")
+            # Log metrics
+            for metric_name, value in metrics.asDict().items():
+                logger.info(f"{metric_name.replace('_', ' ').title()}: {value}")
 
-        # Calculate the Accuracy for each model
-        accuracy_current = accuracy_score(quality, prediction_current)
-        accuracy_latest = accuracy_score(quality, prediction_latest)
+            # Calculate misclassification costs
+            miscal_cost_current = calculate_misclassification_cost(
+                df.select("quality_binary").collect(), df.select("prediction_current_binary").collect()
+            )
+            miscal_cost_latest = calculate_misclassification_cost(
+                df.select("quality_binary").collect(), df.select("prediction_latest_binary").collect()
+            )
 
-        logger.info(f"Accuracy for Current Model: {accuracy_current}")
-        logger.info(f"Accuracy for Latest Model: {accuracy_latest}")
+            logger.info(f"Misclassification Cost for Current Model: ${miscal_cost_current}")
+            logger.info(f"Misclassification Cost for Latest Model: ${miscal_cost_latest}")
 
-        # Calculate the misclassification cost for each model
-        miscal_cost_current = calculate_misclassification_cost(quality, prediction_current)
-        miscal_cost_latest = calculate_misclassification_cost(quality, prediction_latest)
+            # Compare models
+            if (
+                metrics.roc_auc_latest > metrics.roc_auc_current
+                and metrics.f1_score_latest > metrics.f1_score_current
+                and miscal_cost_latest < miscal_cost_current
+            ):
+                logger.info("Latest Model performs better. Registering latest model.")
+                return True
+            elif (
+                metrics.roc_auc_latest < metrics.roc_auc_current
+                and metrics.f1_score_latest < metrics.f1_score_current
+                and miscal_cost_latest > miscal_cost_current
+            ):
+                logger.info("New Model performs worse. Keeping the old model.")
+                return False
+            else:
+                logger.info("Both models have similar performance.")
+                return False
 
-        logger.info(f"Misclassification Cost for Current Model: ${miscal_cost_current}")
-        logger.info(f"Misclassification Cost for Latest Model: ${miscal_cost_latest}")
+        except Exception as e:
+            logger.error(f"Error in model_improved: {str(e)}")
+            raise
 
-        # Calculate the ROC AUC for each model
-        roc_auc_current = roc_auc_score(quality, prediction_current)
-        roc_auc_latest = roc_auc_score(quality, prediction_latest)
 
-        logger.info(f"ROC AUC for Current Model: {roc_auc_current}")
-        logger.info(f"ROC AUC for Latest Model: {roc_auc_latest}")
+# Helper UDFs for metric calculation
+@F.udf(returnType=DoubleType())
+def calculate_f1_score(y_true, y_pred):
+    from sklearn.metrics import f1_score
 
-        # Compare models based on AUROC, F1 score, and misclassification cost
-        if (
-            roc_auc_latest > roc_auc_current
-            and f1_score_latest > f1_score_current
-            and miscal_cost_latest < miscal_cost_current
-        ):
-            logger.info("Latest Model performs better. Registering latest model.")
-            return True
-        elif (
-            roc_auc_latest < roc_auc_current
-            and f1_score_latest < f1_score_current
-            and miscal_cost_latest > miscal_cost_current
-        ):
-            logger.info("New Model performs worse. Keeping the old model.")
-            return False
-        else:
-            logger.info("Both models have similar performance.")
-            return False
+    return float(f1_score(y_true, y_pred))
+
+
+@F.udf(returnType=DoubleType())
+def calculate_roc_auc(y_true, y_pred):
+    from sklearn.metrics import roc_auc_score
+
+    return float(roc_auc_score(y_true, y_pred))

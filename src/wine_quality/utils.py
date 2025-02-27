@@ -17,7 +17,7 @@ def calculate_misclassification_cost(y_true, y_pred, cost_fp=50, cost_fn=10):
         cost_fn (float): Cost of a false negative (good wine classified as bad)
 
     Returns:
-        dict: Contains FP count, FN count, and total cost.
+        float: Total cost of misclassifications.
     """
     tn, fp, fn, tp = confusion_matrix(y_true, y_pred).ravel()
     total_cost = (fp * cost_fp) + (fn * cost_fn)

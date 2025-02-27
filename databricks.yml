@@ -98,7 +98,7 @@ resources:
 
 targets:
   dev:
-    cluster_id: 0225-195405-vw7u55ii
+    cluster_id: 0227-110707-ufjwg371
     default: true
     mode: development
     workspace:

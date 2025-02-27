@@ -69,13 +69,13 @@ fe_model = FeatureLookUpModel(config=config, tags=tags, spark=spark)
 logger.info("Model initialized.")
 
 # Create feature table
-# fe_model.create_feature_table()
+fe_model.create_feature_table()
 
 fe_model.update_feature_table()
 logger.info("Feature table updated.")
 
 # Define house age feature function
-# fe_model.define_feature_function()
+fe_model.define_feature_function()
 
 # Load data
 fe_model.load_data()
@@ -85,13 +85,18 @@ logger.info("Data loaded.")
 fe_model.feature_engineering()
 
 # Train the model
-fe_model.train()
-logger.info("Model training completed.")
+# fe_model.train()
+# logger.info("Model training completed.")
+
+# # Register the model
+# fe_model.register_model()
+# logger.info("Model registered.")
+
 
 # Evaluate model
 # Load test set from Delta table
 spark = SparkSession.builder.getOrCreate()
-test_set = spark.table(f"{config.catalog_name}.{config.schema_name}.test_set").limit(100)
+test_set = spark.table(f"{config.catalog_name}.{config.schema_name}.test_set_dab").limit(100)
 # Drop feature lookup columns and target
 test_set = test_set.drop("fixed_acidity", "citric_acid", "volatile_acidity")
 

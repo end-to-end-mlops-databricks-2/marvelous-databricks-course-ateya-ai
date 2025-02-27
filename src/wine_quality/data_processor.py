@@ -84,21 +84,21 @@ class DataProcessor:
         )
 
         train_set_with_timestamp.write.mode("append").saveAsTable(
-            f"{self.config.catalog_name}.{self.config.schema_name}.train_set"
+            f"{self.config.catalog_name}.{self.config.schema_name}.train_set_dab"
         )
 
         test_set_with_timestamp.write.mode("append").saveAsTable(
-            f"{self.config.catalog_name}.{self.config.schema_name}.test_set"
+            f"{self.config.catalog_name}.{self.config.schema_name}.test_set_dab"
         )
 
     def enable_change_data_feed(self):
         self.spark.sql(
-            f"ALTER TABLE {self.config.catalog_name}.{self.config.schema_name}.train_set "
+            f"ALTER TABLE {self.config.catalog_name}.{self.config.schema_name}.train_set_dab"
             "SET TBLPROPERTIES (delta.enableChangeDataFeed = true);"
         )
 
         self.spark.sql(
-            f"ALTER TABLE {self.config.catalog_name}.{self.config.schema_name}.test_set "
+            f"ALTER TABLE {self.config.catalog_name}.{self.config.schema_name}.test_set_dab"
             "SET TBLPROPERTIES (delta.enableChangeDataFeed = true);"
         )
 

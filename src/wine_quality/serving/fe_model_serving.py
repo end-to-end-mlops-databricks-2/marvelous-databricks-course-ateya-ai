@@ -17,7 +17,7 @@ class FeatureLookupServing:
         """
         self.workspace = WorkspaceClient()
         self.feature_table_name = feature_table_name
-        self.online_table_name = f"{self.feature_table_name}_online"
+        self.online_table_name = f"{self.feature_table_name}_online_dab"
         self.model_name = model_name
         self.endpoint_name = endpoint_name
 

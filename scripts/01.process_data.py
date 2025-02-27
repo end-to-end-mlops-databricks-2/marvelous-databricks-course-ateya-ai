@@ -36,11 +36,8 @@ logger.info(yaml.dump(config, default_flow_style=False))
 # Load the house prices dataset
 spark = SparkSession.builder.getOrCreate()
 
-# df = spark.read.csv(
-#     f"/Volumes/{config.catalog_name}/{config.schema_name}/data/data.csv", header=True, inferSchema=True
-# ).toPandas()
 df = spark.read.csv(
-    "/Volumes/mlops_dev/ateyatec/data/data.csv", header=True, inferSchema=True
+    f"/Volumes/{config.catalog_name}/{config.schema_name}/data/data.csv", header=True, inferSchema=True
 ).toPandas()
 
 # Generate synthetic data
@@ -50,7 +47,7 @@ synthetic_df = generate_synthetic_data(df, num_rows=100)
 logger.info("Synthetic data generated.")
 
 # Initialize DataProcessor
-data_processor = DataProcessor(synthetic_df, config, spark)
+data_processor = DataProcessor(df=synthetic_df, config=config, spark=spark)
 
 # Preprocess the data
 data_processor.preprocess()
