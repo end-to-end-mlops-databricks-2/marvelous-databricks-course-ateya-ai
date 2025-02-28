@@ -8,7 +8,7 @@ artifacts:
     build: |
       uv venv .venv  # Create a virtual environment using `uv`
       source .venv/bin/activate  # Activate the virtual environment
-      uv pip install .  # Install the package using `uv`
+      uv pip install . --outdir dist # Install the package using `uv`
     #path: .
 directory:
   path: dist
