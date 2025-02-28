@@ -98,7 +98,7 @@ resources:
 
 targets:
   dev:
-    cluster_id: 0227-110707-ufjwg371
+    cluster_id: 0228-114649-3khm4mcp
     default: true
     mode: development
     workspace:
