@@ -1,4 +1,3 @@
----
 bundle:
   name: wine_quality
 
@@ -35,6 +34,7 @@ resources:
 
       environments:
         - environment_key: "default_environment" # Define an environment
+          client: "databricks" # Required field
           spec:
             libraries:
               - whl: ./dist/*.whl # Libraries are defined here
