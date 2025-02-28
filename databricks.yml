@@ -9,7 +9,9 @@ artifacts:
       uv venv .venv  # Create a virtual environment using `uv`
       source .venv/bin/activate  # Activate the virtual environment
       uv pip install .  # Install the package using `uv`
-    path: .
+    #path: .
+directory:
+  path: dist
 
 variables:
   git_sha:
