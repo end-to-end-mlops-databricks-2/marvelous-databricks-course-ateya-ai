@@ -17,7 +17,7 @@ variables:
     default: abcd
   branch:
     description: branch
-    default: week4
+    default: feature/dab
   schedule_pause_status:
     description: schedule pause status
     default: UNPAUSED
