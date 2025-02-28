@@ -31,7 +31,6 @@ resources:
         pause_status: ${var.schedule_pause_status}
       tags:
         project_name: "wine-quality"
-      # No need to define job_clusters since we're using an existing cluster
 
       tasks:
         - task_key: "preprocessing"
@@ -43,8 +42,7 @@ resources:
               - ${workspace.root_path}
               - "--env"
               - ${bundle.target}
-          libraries:
-            - whl: ./dist/*.whl
+          # Removed libraries from here
         - task_key: "train_model"
           existing_cluster_id: ${var.cluster_id} # Use the existing cluster ID
           depends_on:
@@ -62,8 +60,7 @@ resources:
               - "{{job.id}}"
               - "--branch"
               - ${var.branch}
-          libraries:
-            - whl: ./dist/*.whl
+          # Removed libraries from here
         - task_key: model_updated
           condition_task:
             op: "EQUAL_TO"
@@ -83,8 +80,7 @@ resources:
               - ${workspace.root_path}
               - "--env"
               - ${bundle.target}
-          libraries:
-            - whl: ./dist/*.whl
+          # Removed libraries from here
 
 targets:
   dev:
@@ -96,6 +92,9 @@ targets:
       root_path: /Workspace/Users/${workspace.current_user.userName}/.bundle/${bundle.target}/${bundle.name}
     variables:
       schedule_pause_status: PAUSED
+    environment:
+      libraries:
+        - whl: ./dist/*.whl # Specify libraries at the environment level
 
   acc:
     workspace:
@@ -103,6 +102,9 @@ targets:
       root_path: /Shared/.bundle/${bundle.target}/${bundle.name}
     variables:
       schedule_pause_status: PAUSED
+    environment:
+      libraries:
+        - whl: ./dist/*.whl # Specify libraries at the environment level
 
   prd:
     workspace:
@@ -110,3 +112,6 @@ targets:
       root_path: /Shared/.bundle/${bundle.target}/${bundle.name}
     variables:
       schedule_pause_status: UNPAUSED
+    environment:
+      libraries:
+        - whl: ./dist/*.whl # Specify libraries at the environment level
