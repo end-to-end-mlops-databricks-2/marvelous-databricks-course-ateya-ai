@@ -9,14 +9,6 @@ on:
     tags:
       - "[0-9]+.[0-9]+.[0-9]+"
 
-permissions:
-  contents: read # No id-token required for service principal authentication
-
-env:
-  AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
-  AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
-  AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
-
 jobs:
   setup-validate:
     name: Set Up Environment
@@ -43,14 +35,9 @@ jobs:
           version: 0.221.1
 
       - name: Azure CLI Login with Service Principal
-        uses: azure/login@v1
+        uses: azure/login@v2
         with:
-          tenant-id: ${{ env.AZURE_TENANT_ID }}
-          subscription-id: ${{ env.AZURE_SUBSCRIPTION_ID }}
-          client-id: ${{ env.AZURE_CLIENT_ID }}
-          client-secret: ${{ env.AZURE_CLIENT_SECRET }}
-          auth-type: SERVICE_PRINCIPAL
-          enable-AzPSSession: false
+          creds: ${{ secrets.AZURE_CREDENTIALS }
 
       - name: Set Databricks Token
         run: echo "DATABRICKS_TOKEN=$(az account get-access-token --resource 2ff814a6-3304-4ab8-85cb-cd0e6f879c1d | jq .accessToken --raw-output)" >> $GITHUB_ENV
