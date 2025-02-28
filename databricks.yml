@@ -5,7 +5,7 @@ bundle:
 artifacts:
   default:
     type: whl
-    build: uv venv && uv pip install build setuptools && python -m build
+    build: uv pip install .
     path: .
 
 variables:
