@@ -21,6 +21,9 @@ variables:
   schedule_pause_status:
     description: schedule pause status
     default: UNPAUSED
+  cluster_id:
+    description: Cluster ID
+    default: ""
 
 resources:
   jobs:
@@ -106,7 +109,6 @@ targets:
       root_path: /Workspace/Users/${workspace.current_user.userName}/.bundle/${bundle.target}/${bundle.name}
     variables:
       schedule_pause_status: PAUSED
-      cluster_id: 0228-114649-3khm4mcp
 
   acc:
     workspace:
