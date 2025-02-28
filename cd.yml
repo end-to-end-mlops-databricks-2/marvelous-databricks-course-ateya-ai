@@ -1,28 +1,20 @@
-name: MLOPs with Databricks example
+name: MLOPs with Databricks
 
 on:
-  # workflow_dispatch:
   push:
     branches:
       - "main"
-      - week*
+      - "feature/*"
     tags:
       - "[0-9]+.[0-9]+.[0-9]+"
 
-permissions: # needed for federated credentials
-  id-token: write
-  contents: read
-
 env:
-  AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
-  AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
-  AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+  DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
 
 jobs:
   setup-validate:
     name: Set Up Environment
     runs-on: ubuntu-latest
-    environment: dev # github environment
 
     steps:
       - name: Checkout Source Code
@@ -42,17 +34,6 @@ jobs:
         uses: databricks/setup-cli@948d7379a31615a4c8e9ccbbc5445a12d6b32736
         with:
           version: 0.221.1
-
-      - name: AZ CLI login
-        uses: azure/login@a65d910e8af852a8061c627c456678983e180302
-        with:
-          tenant-id: ${{ env.AZURE_TENANT_ID }}
-          subscription-id: ${{ env.AZURE_SUBSCRIPTION_ID }}
-          client-id: ${{ env.AZURE_CLIENT_ID }}
-          enable-AzPSSession: false #enable powershell false
-
-      - name: Set Databricks Token
-        run: echo "DATABRICKS_TOKEN=$(az account get-access-token --resource 2ff814a6-3304-4ab8-85cb-cd0e6f879c1d | jq .accessToken --raw-output)" >> $GITHUB_ENV
 
       - name: Deploy to Databricks
         env:
