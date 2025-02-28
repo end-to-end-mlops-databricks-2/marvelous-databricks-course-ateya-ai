@@ -49,6 +49,7 @@ jobs:
           subscription-id: ${{ env.AZURE_SUBSCRIPTION_ID }}
           client-id: ${{ env.AZURE_CLIENT_ID }}
           client-secret: ${{ env.AZURE_CLIENT_SECRET }}
+          auth-type: SERVICE_PRINCIPAL_SECRET
           enable-AzPSSession: false
 
       - name: Set Databricks Token
