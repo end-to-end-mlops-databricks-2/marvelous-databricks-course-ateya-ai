@@ -1,3 +1,4 @@
+---
 bundle:
   name: wine_quality
 
@@ -36,8 +37,9 @@ resources:
         - environment_key: "default_environment" # Define an environment
           client: "databricks" # Required field
           spec:
+            client: "databricks" # Required field in spec
             libraries:
-              - whl: ./dist/*.whl # Libraries are defined here
+              - whl: ./dist/wine_quality-0.0.25-py3-none-any.whl # Use a specific .whl file
 
       tasks:
         - task_key: "preprocessing"
