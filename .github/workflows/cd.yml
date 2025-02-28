@@ -1,4 +1,4 @@
-name: MLOPs with Databricks
+name: CD to Datbricks Pipeline
 
 on:
   push:
