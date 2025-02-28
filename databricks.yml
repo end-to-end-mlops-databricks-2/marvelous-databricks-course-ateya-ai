@@ -5,7 +5,7 @@ bundle:
 artifacts:
   default:
     type: whl
-    build: uv build
+    build: uv pip install build && python -m build
     path: .
 
 variables:
