@@ -1,3 +1,4 @@
+---
 bundle:
   name: wine_quality
 
@@ -32,9 +33,15 @@ resources:
       tags:
         project_name: "wine-quality"
 
+      environments:
+        - environment_key: "default_environment" # Define an environment
+          spec:
+            libraries:
+              - whl: ./dist/*.whl # Libraries are defined here
+
       tasks:
         - task_key: "preprocessing"
-          existing_cluster_id: ${var.cluster_id} # Use the existing cluster ID
+          environment_key: "default_environment" # Reference the environment
           spark_python_task:
             python_file: "scripts/01.process_data.py"
             parameters:
@@ -42,9 +49,8 @@ resources:
               - ${workspace.root_path}
               - "--env"
               - ${bundle.target}
-          # Removed libraries from here
         - task_key: "train_model"
-          existing_cluster_id: ${var.cluster_id} # Use the existing cluster ID
+          environment_key: "default_environment" # Reference the environment
           depends_on:
             - task_key: "preprocessing"
           spark_python_task:
@@ -60,7 +66,6 @@ resources:
               - "{{job.id}}"
               - "--branch"
               - ${var.branch}
-          # Removed libraries from here
         - task_key: model_updated
           condition_task:
             op: "EQUAL_TO"
@@ -72,7 +77,7 @@ resources:
           depends_on:
             - task_key: "model_updated"
               outcome: "true"
-          existing_cluster_id: ${var.cluster_id} # Use the existing cluster ID
+          environment_key: "default_environment" # Reference the environment
           spark_python_task:
             python_file: "scripts/03.deploy_model.py"
             parameters:
@@ -80,7 +85,6 @@ resources:
               - ${workspace.root_path}
               - "--env"
               - ${bundle.target}
-          # Removed libraries from here
 
 targets:
   dev:
@@ -92,9 +96,6 @@ targets:
       root_path: /Workspace/Users/${workspace.current_user.userName}/.bundle/${bundle.target}/${bundle.name}
     variables:
       schedule_pause_status: PAUSED
-    environment:
-      libraries:
-        - whl: ./dist/*.whl # Specify libraries at the environment level
 
   acc:
     workspace:
@@ -102,9 +103,6 @@ targets:
       root_path: /Shared/.bundle/${bundle.target}/${bundle.name}
     variables:
       schedule_pause_status: PAUSED
-    environment:
-      libraries:
-        - whl: ./dist/*.whl # Specify libraries at the environment level
 
   prd:
     workspace:
@@ -112,6 +110,3 @@ targets:
       root_path: /Shared/.bundle/${bundle.target}/${bundle.name}
     variables:
       schedule_pause_status: UNPAUSED
-    environment:
-      libraries:
-        - whl: ./dist/*.whl # Specify libraries at the environment level
