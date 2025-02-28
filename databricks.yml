@@ -5,7 +5,10 @@ bundle:
 artifacts:
   default:
     type: whl
-    build: uv pip install .
+    build: |
+      uv venv .venv  # Create a virtual environment using `uv`
+      source .venv/bin/activate  # Activate the virtual environment
+      uv pip install .  # Install the package using `uv`
     path: .
 
 variables:
