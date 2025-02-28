@@ -89,11 +89,7 @@ resources:
 
 targets:
   dev:
-<<<<<<< HEAD
-    cluster_id: 0228-114649-3khm4mcp # Existing cluster ID for dev
-=======
     cluster_id: 0228-172517-2yloy66d
->>>>>>> week4
     default: true
     mode: development
     workspace:
