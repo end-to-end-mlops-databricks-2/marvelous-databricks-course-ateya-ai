@@ -85,12 +85,12 @@ logger.info("Data loaded.")
 fe_model.feature_engineering()
 
 # Train the model
-# fe_model.train()
-# logger.info("Model training completed.")
+fe_model.train()
+logger.info("Model training completed.")
 
 # # Register the model
-# fe_model.register_model()
-# logger.info("Model registered.")
+fe_model.register_model()
+logger.info("Model registered.")
 
 
 # Evaluate model
