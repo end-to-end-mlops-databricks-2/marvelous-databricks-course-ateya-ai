@@ -16,7 +16,7 @@ class FeatureServing:
         self.feature_table_name = feature_table_name
         self.workspace = WorkspaceClient()
         self.feature_spec_name = feature_spec_name
-        self.online_table_name = f"{self.feature_table_name}_online"
+        self.online_table_name = f"{self.feature_table_name}_online_dab"
         self.endpoint_name = endpoint_name
         self.fe = feature_engineering.FeatureEngineeringClient()
 
