@@ -8,10 +8,9 @@ artifacts:
     build: |
       uv venv .venv  # Create a virtual environment using `uv`
       source .venv/bin/activate  # Activate the virtual environment
-      uv pip install . --outdir dist # Install the package using `uv`
-    #path: .
-directory:
-  path: dist
+      uv pip install build  # Install the `build` module using `uv`
+      python -m build --outdir dist # Install the package using `uv`
+    path: dist
 
 variables:
   git_sha:
