@@ -47,6 +47,9 @@ feature_model_server = FeatureLookupServing(
     feature_table_name=f"{catalog_name}.{schema_name}.wine_quality_features_dab",
 )
 
+feature_model_server.create_feature_spec()
+logger.info("Created feature spec")
+
 # Create the online table for house features
 feature_model_server.create_online_table()
 logger.info("Created online table")
