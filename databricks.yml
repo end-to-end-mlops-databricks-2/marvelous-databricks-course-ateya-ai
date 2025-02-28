@@ -6,6 +6,7 @@ artifacts:
   default:
     type: whl
     build: |
+      mkdir -p dist
       uv venv .venv  # Create a virtual environment using `uv`
       source .venv/bin/activate  # Activate the virtual environment
       uv pip install build  # Install the `build` module using `uv`
