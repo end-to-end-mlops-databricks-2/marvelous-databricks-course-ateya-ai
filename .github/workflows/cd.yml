@@ -41,8 +41,16 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      # - name: Set Databricks Token
-      #   run: echo "DATABRICKS_TOKEN=$(az account get-access-token --resource 2ff814a6-3304-4ab8-85cb-cd0e6f879c1d | jq .accessToken --raw-output)" >> $GITHUB_ENV
+      - name: Build package
+        run: |
+          echo "Current working directory: $(pwd)"
+          mkdir -p dist
+          uv venv .venv
+          source .venv/bin/activate
+          uv pip install build
+          python -m build --outdir dist
+          echo "Build completed. Contents of 'dist':"
+          ls -l dist
 
       - name: Deploy to Databricks
         env:
