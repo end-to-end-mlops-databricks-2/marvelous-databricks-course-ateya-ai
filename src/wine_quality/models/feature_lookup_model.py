@@ -19,7 +19,6 @@ from sklearn.metrics import (
     f1_score,
     precision_score,
     recall_score,
-    roc_auc_score,
 )
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
@@ -172,7 +171,7 @@ class FeatureLookUpModel:
             y_pred = pipeline.predict(self.X_test)
 
             # Predict probabilities for the positive class
-            y_pred_proba = pipeline.predict_proba(self.X_test)[:, 1]  # Probabilities for class 1
+            # y_pred_proba = pipeline.predict_proba(self.X_test)[:, 1]  # Probabilities for class 1
             y_pred = pipeline.predict(self.X_test)  # Binary labels (0 and 1)
 
             # Debug: Check unique values in y_test and y_pred
@@ -182,21 +181,21 @@ class FeatureLookUpModel:
             # Ensure y_test is binary
             self.y_test = np.where(self.y_test > 0, 1, 0)  # Convert to binary (0 and 1)
 
-            # Evaluate metrics
+            # # Evaluate metrics
             accuracy = accuracy_score(self.y_test, y_pred)
-            # Check if y_test contains only one class
-            unique_classes = np.unique(self.y_test)
-            if len(unique_classes) == 1:
-                logger.info("Only one class present in y_true. ROC AUC score is not defined and will be skipped.")
-                roc_auc = None
-            else:
-                roc_auc = roc_auc_score(self.y_test, y_pred_proba)  # Use probabilities for ROC AUC
+            # # Check if y_test contains only one class
+            # unique_classes = np.unique(self.y_test)
+            # if len(unique_classes) == 1:
+            #     logger.info("Only one class present in y_true. ROC AUC score is not defined and will be skipped.")
+            #     roc_auc = None
+            # else:
+            #     roc_auc = roc_auc_score(self.y_test, y_pred_proba)  # Use probabilities for ROC AUC
 
             logger.info(f"📊 Accuracy Score: {accuracy}")
-            if roc_auc is not None:
-                logger.info(f"📊 ROC AUC SCORE: {roc_auc}")
-            else:
-                logger.info("📊 ROC AUC SCORE: Not calculated (only one class present in y_true)")
+            # if roc_auc is not None:
+            #     logger.info(f"📊 ROC AUC SCORE: {roc_auc}")
+            # else:
+            #     logger.info("📊 ROC AUC SCORE: Not calculated (only one class present in y_true)")
 
             precision = precision_score(self.y_test, y_pred)
             recall = recall_score(self.y_test, y_pred)
@@ -204,7 +203,7 @@ class FeatureLookUpModel:
             report = classification_report(self.y_test, y_pred, output_dict=True)
 
             logger.info(f"📊 Accuracy Score: {accuracy}")
-            logger.info(f"📊 ROC AUC SCORE: {roc_auc}")
+            # logger.info(f"📊 ROC AUC SCORE: {roc_auc}")
             logger.info(f"📊 Precision Score: {precision}")
             logger.info(f"📊 Recall Score: {recall}")
             logger.info(f"📊 F1 Score: {f1}")
@@ -214,7 +213,7 @@ class FeatureLookUpModel:
             mlflow.log_param("model_type", "LightGBM Classifier with preprocessing")
             mlflow.log_params(self.parameters)
             mlflow.log_metric("Accuracy Score", accuracy)
-            mlflow.log_metric("ROC AUC SCORE", roc_auc)
+            # mlflow.log_metric("ROC AUC SCORE", roc_auc)
             mlflow.log_metric("Precision", precision)
             mlflow.log_metric("Recall", recall)
             mlflow.log_metric("f1_score", f1)
@@ -347,12 +346,6 @@ class FeatureLookUpModel:
                     calculate_f1_score(
                         F.collect_list("quality_binary"), F.collect_list("prediction_latest_binary")
                     ).alias("f1_score_latest"),
-                    calculate_roc_auc(F.collect_list("quality_binary"), F.collect_list("prediction_current")).alias(
-                        "roc_auc_current"
-                    ),
-                    calculate_roc_auc(F.collect_list("quality_binary"), F.collect_list("prediction_latest")).alias(
-                        "roc_auc_latest"
-                    ),
                 )
                 .collect()[0]
             )
@@ -373,18 +366,10 @@ class FeatureLookUpModel:
             logger.info(f"Misclassification Cost for Latest Model: ${miscal_cost_latest}")
 
             # Compare models
-            if (
-                metrics.roc_auc_latest > metrics.roc_auc_current
-                and metrics.f1_score_latest > metrics.f1_score_current
-                and miscal_cost_latest < miscal_cost_current
-            ):
+            if metrics.f1_score_latest > metrics.f1_score_current and miscal_cost_latest < miscal_cost_current:
                 logger.info("Latest Model performs better. Registering latest model.")
                 return True
-            elif (
-                metrics.roc_auc_latest < metrics.roc_auc_current
-                and metrics.f1_score_latest < metrics.f1_score_current
-                and miscal_cost_latest > miscal_cost_current
-            ):
+            elif metrics.f1_score_latest < metrics.f1_score_current and miscal_cost_latest > miscal_cost_current:
                 logger.info("New Model performs worse. Keeping the old model.")
                 return False
             else:
@@ -404,8 +389,8 @@ def calculate_f1_score(y_true, y_pred):
     return float(f1_score(y_true, y_pred))
 
 
-@F.udf(returnType=DoubleType())
-def calculate_roc_auc(y_true, y_pred):
-    from sklearn.metrics import roc_auc_score
+# @F.udf(returnType=DoubleType())
+# def calculate_roc_auc(y_true, y_pred):
+#     from sklearn.metrics import roc_auc_score
 
-    return float(roc_auc_score(y_true, y_pred))
+#     return float(roc_auc_score(y_true, y_pred))
