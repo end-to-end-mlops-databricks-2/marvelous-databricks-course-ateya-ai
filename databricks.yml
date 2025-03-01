@@ -37,9 +37,9 @@ variables:
 resources:
   jobs:
     wine-quality:
-      name: wine-quality-workflow-test-demo
+      name: wine-quality-workflow-demo
       schedule:
-        quartz_cron_expression: "0 * * * * ?"
+        quartz_cron_expression: "8 20 10 ? * Sat"
         timezone_id: "America/Chicago"
         pause_status: ${var.schedule_pause_status}
       tags:
