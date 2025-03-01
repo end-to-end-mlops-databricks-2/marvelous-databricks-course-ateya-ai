@@ -6,11 +6,18 @@ artifacts:
   default:
     type: whl
     build: |
+      echo "Current working directory: $(pwd)"
       mkdir -p dist
+      if [ ! -d "dist" ]; then
+        echo "Error: Failed to create 'dist' directory."
+        exit 1
+      fi
       uv venv .venv  # Create a virtual environment using `uv`
       source .venv/bin/activate  # Activate the virtual environment
       uv pip install build  # Install the `build` module using `uv`
-      python -m build --outdir dist # Install the package using `uv`
+      python -m build --outdir dist  # Build the package and output to `dist`
+      echo "Build completed. Contents of 'dist':"
+      ls -l dist
     path: dist
 
 variables:
