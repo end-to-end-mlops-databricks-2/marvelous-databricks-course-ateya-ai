@@ -56,4 +56,5 @@ jobs:
         env:
           DATABRICKS_BUNDLE_ENV: dev # Bundle target
         run: |
+          cd $GITHUB_WORKSPACE  # Ensure we're in the project root
           databricks bundle deploy --var="git_sha=${{ github.sha }}"
