@@ -15,6 +15,7 @@ artifacts:
       uv venv .venv  # Create a virtual environment using `uv`
       source .venv/bin/activate  # Activate the virtual environment
       uv pip install build  # Install the `build` module using `uv`
+      uv pip install build loguru  # ✅ Install loguru
       python -m build --outdir dist  # Build the package and output to `dist`
       echo "Build completed. Contents of 'dist':"
       ls -l dist
