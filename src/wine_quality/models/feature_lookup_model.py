@@ -184,7 +184,20 @@ class FeatureLookUpModel:
 
             # Evaluate metrics
             accuracy = accuracy_score(self.y_test, y_pred)
-            roc_auc = roc_auc_score(self.y_test, y_pred_proba)  # Use probabilities for ROC AUC
+                    # Check if y_test contains only one class
+            unique_classes = np.unique(self.y_test)
+            if len(unique_classes) == 1:
+                warnings.warn("Only one class present in y_true. ROC AUC score is not defined and will be skipped.")
+                roc_auc = None
+            else:
+                roc_auc = roc_auc_score(self.y_test, y_pred_proba)  # Use probabilities for ROC AUC
+
+            logger.info(f"📊 Accuracy Score: {accuracy}")
+            if roc_auc is not None:
+                logger.info(f"📊 ROC AUC SCORE: {roc_auc}")
+            else:
+                logger.info("📊 ROC AUC SCORE: Not calculated (only one class present in y_true)")
+
             precision = precision_score(self.y_test, y_pred)
             recall = recall_score(self.y_test, y_pred)
             f1 = f1_score(self.y_test, y_pred)
