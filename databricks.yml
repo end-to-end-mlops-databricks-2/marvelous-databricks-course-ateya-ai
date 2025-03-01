@@ -32,7 +32,7 @@ variables:
     default: UNPAUSED
   cluster_id:
     description: Cluster ID
-    default: ""
+    default: "0301-141303-1e6yoc31" # ✅ Ensure this is correctly set
 
 resources:
   jobs:
@@ -47,6 +47,7 @@ resources:
 
       tasks:
         - task_key: "preprocessing"
+          existing_cluster_id: ${var.cluster_id} # ✅ Using specified cluster
           spark_python_task:
             python_file: "scripts/01.process_data.py"
             parameters:
@@ -54,8 +55,9 @@ resources:
               - ${workspace.root_path}
               - "--env"
               - ${bundle.target}
+
         - task_key: "train_model"
-          environment_key: "default_environment" # Reference the environment
+          existing_cluster_id: ${var.cluster_id} # ✅ Using specified cluster
           depends_on:
             - task_key: "preprocessing"
           spark_python_task:
@@ -71,6 +73,7 @@ resources:
               - "{{job.id}}"
               - "--branch"
               - ${var.branch}
+
         - task_key: model_updated
           condition_task:
             op: "EQUAL_TO"
@@ -78,7 +81,9 @@ resources:
             right: "1"
           depends_on:
             - task_key: "train_model"
+
         - task_key: "deploy_model"
+          existing_cluster_id: ${var.cluster_id} # ✅ Using specified cluster
           depends_on:
             - task_key: "model_updated"
               outcome: "true"
