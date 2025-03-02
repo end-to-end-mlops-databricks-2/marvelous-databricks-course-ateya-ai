@@ -50,15 +50,12 @@ feature_model_server = FeatureLookupServing(
 )
 
 
-feature_model_server.create_feature_spec()
-logger.info("Created feature spec")
-
 # Create the online table for house features
 feature_model_server.create_online_table()
 logger.info("Created online table")
 
-feature_model_server.update_online_table(config=config)
-logger.info("Updated online table")
+# feature_model_server.update_online_table(config=config)
+# logger.info("Updated online table")
 
 # Deploy the model serving endpoint with feature lookup
 feature_model_server.deploy_or_update_serving_endpoint()
