@@ -33,12 +33,12 @@ variables:
     default: UNPAUSED
   cluster_id:
     description: Cluster ID
-    default: "0302-131929-j8ycgkim" # ✅ Ensure this is correctly set
+    default: "0302-162826-bx1by4ta" # ✅ Ensure this is correctly set
 
 resources:
   jobs:
     wine-quality:
-      name: wine-quality-workflow-demo
+      name: wine-quality-workflow-test-dab
       schedule:
         quartz_cron_expression: "8 20 10 ? * Sat"
         timezone_id: "America/Chicago"
@@ -100,7 +100,7 @@ resources:
 
 targets:
   dev:
-    cluster_id: 0301-195541-8hap88j
+    cluster_id: 0302-162826-bx1by4ta
     default: true
     mode: development
     workspace:
