@@ -30,7 +30,9 @@ config_path = f"{root_path}/files/project_config.yml"
 
 spark = SparkSession.builder.getOrCreate()
 dbutils = DBUtils(spark)
-model_version = dbutils.jobs.taskValues.get(taskKey="train_model", key="model_version")
+
+# model_version = dbutils.jobs.taskValues.get(taskKey="train_model", key="model_version")
+
 
 # Load project config
 config = ProjectConfig.from_yaml(config_path=config_path, env=args.env)
@@ -47,6 +49,7 @@ feature_model_server = FeatureLookupServing(
     feature_table_name=f"{catalog_name}.{schema_name}.wine_quality_features_dab",
 )
 
+
 feature_model_server.create_feature_spec()
 logger.info("Created feature spec")
 
@@ -58,5 +61,5 @@ feature_model_server.update_online_table(config=config)
 logger.info("Updated online table")
 
 # Deploy the model serving endpoint with feature lookup
-feature_model_server.deploy_or_update_serving_endpoint(version=model_version)
+feature_model_server.deploy_or_update_serving_endpoint()
 logger.info("Started deployment/update of the serving endpoint")
