@@ -2,6 +2,7 @@ import time
 
 import mlflow
 from databricks.sdk import WorkspaceClient
+from databricks.sdk.errors import TemporarilyUnavailable
 from databricks.sdk.service.catalog import (
     OnlineTableSpec,
     OnlineTableSpecTriggeredSchedulingPolicy,
@@ -23,7 +24,7 @@ class FeatureLookupServing:
 
     def create_online_table(self):
         """
-        Creates an online table for wine quality features.
+        Creates an online table for wine quality features with retry logic.
         """
         spec = OnlineTableSpec(
             primary_key_columns=["Id"],
@@ -31,7 +32,25 @@ class FeatureLookupServing:
             run_triggered=OnlineTableSpecTriggeredSchedulingPolicy.from_dict({"triggered": "true"}),
             perform_full_copy=False,
         )
-        self.workspace.online_tables.create(name=self.online_table_name, spec=spec)
+
+        max_retries = 5
+        wait_seconds = 60  # Wait 1 minute between retries
+
+        for attempt in range(1, max_retries + 1):
+            try:
+                self.workspace.online_tables.create(name=self.online_table_name, spec=spec)
+                print(f"✅ Online table '{self.online_table_name}' created successfully.")
+                break  # Exit loop if successful
+            except TemporarilyUnavailable as e:
+                print(f"⚠️ Attempt {attempt} failed due to temporary unavailability: {e}")
+            except Exception as e:
+                print(f"❌ Attempt {attempt} failed with unexpected error: {e}")
+
+            if attempt < max_retries:
+                print(f"🔄 Retrying in {wait_seconds} seconds...")
+                time.sleep(wait_seconds)
+            else:
+                raise Exception(f"❌ Failed to create online table after {max_retries} attempts.")
 
     def get_latest_model_version(self):
         client = mlflow.MlflowClient()
