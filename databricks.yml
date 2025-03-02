@@ -33,7 +33,7 @@ variables:
     default: UNPAUSED
   cluster_id:
     description: Cluster ID
-    default: "0301-195541-8hap88j" # ✅ Ensure this is correctly set
+    default: "0302-131929-j8ycgkim" # ✅ Ensure this is correctly set
 
 resources:
   jobs:
@@ -75,19 +75,19 @@ resources:
               - "--branch"
               - ${var.branch}
 
-        - task_key: model_updated
-          condition_task:
-            op: "EQUAL_TO"
-            left: "{{tasks.train_model.values.model_updated}}"
-            right: "1"
-          depends_on:
-            - task_key: "train_model"
+        # - task_key: model_updated
+        #   condition_task:
+        #     op: "EQUAL_TO"
+        #     left: "{{tasks.train_model.values.model_updated}}"
+        #     right: "1"
+        #   depends_on:
+        #     - task_key: "train_model"
 
         - task_key: "deploy_model"
           existing_cluster_id: ${var.cluster_id} # ✅ Using specified cluster
-          depends_on:
-            - task_key: "model_updated"
-              outcome: "true"
+          # depends_on:
+          #   - task_key: "model_updated"
+          #     outcome: "true"
           spark_python_task:
             python_file: "scripts/03.deploy_model.py"
             parameters:
