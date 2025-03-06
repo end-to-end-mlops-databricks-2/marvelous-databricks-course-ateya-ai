@@ -3,7 +3,7 @@ import time
 import mlflow
 from databricks.sdk import WorkspaceClient
 from databricks.sdk.errors import TemporarilyUnavailable
-from databricks.sdk.service.catalog import OnlineTable, OnlineTableSpec, OnlineTableSpecTriggeredSchedulingPolicy
+from databricks.sdk.service.catalog import OnlineTableSpec, OnlineTableSpecTriggeredSchedulingPolicy
 from databricks.sdk.service.serving import EndpointCoreConfigInput, ServedEntityInput
 from loguru import logger
 
@@ -30,14 +30,12 @@ class FeatureLookupServing:
             perform_full_copy=False,
         )
 
-        online_table = OnlineTable(name=self.online_table_name, spec=spec)
-
         max_retries = 5
         wait_seconds = 60  # Wait 1 minute between retries
 
         for attempt in range(1, max_retries + 1):
             try:
-                self.workspace.online_tables.create_and_wait(table=online_table)
+                self.workspace.online_tables.create(name=self.online_table_name, spec=spec)
                 print(f"✅ Online table '{self.online_table_name}' created successfully.")
                 break  # Exit loop if successful
             except TemporarilyUnavailable as e:
