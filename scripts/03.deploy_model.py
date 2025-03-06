@@ -46,15 +46,15 @@ endpoint_name = "wine-quality-model-serving-fe-{args.env}"
 
 # Initialize Feature Lookup Serving Manager
 feature_model_server = FeatureLookupServing(
-    model_name="wine_quality_model_fe_dab",
+    model_name=f"{catalog_name}.{schema_name}.wine_quality_model_fe_dab",
     endpoint_name=endpoint_name,
     feature_table_name=f"{catalog_name}.{schema_name}.wine_quality_features_dab",
 )
 
 
 # Create the online table for house features
-feature_model_server.create_online_table()
-logger.info("Created online table")
+# feature_model_server.create_online_table()
+# logger.info("Created online table")
 
 # feature_model_server.update_online_table(config=config)
 # logger.info("Updated online table")
