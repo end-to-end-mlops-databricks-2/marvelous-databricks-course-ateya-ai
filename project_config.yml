@@ -1,20 +1,20 @@
 ---
 prd:
-  catalog_name: mlops_prod
-  schema_name: wine_quality
+  catalog_name: ws_mlops
+  schema_name: wine_schema
   pipeline_id: 1818db79-f551-49bb-ad4f-f61cac9d91fc
 acc:
-  catalog_name: mlops_acc
-  schema_name: wine_quality
+  catalog_name: ws_mlops
+  schema_name: wine_schema
   pipeline_id: 94748db79-f551-49bb-ad4f-f61cac9d91fc
 dev:
-  catalog_name: mlops_dev
+  catalog_name: ws_mlops
   #schema_name: wine_quality
-  schema_name: ateyatec
+  schema_name: wine_schema
   pipeline_id: 0498db79-f551-49bb-ad4f-finac9d91fc
 
-catalog_name: mlops_dev
-schema_name: ateyatec
+catalog_name: ws_mlops
+schema_name: wine_schema
 pipeline_id: 0498db79-f551-49bb-ad4f-finac9d91fc
 experiment_name_basic: /Shared/wine-quality-basic
 experiment_name_custom: /Shared/wine-quality-custom

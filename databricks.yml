@@ -33,7 +33,7 @@ variables:
     default: UNPAUSED
   cluster_id:
     description: Cluster ID
-    default: "0304-184328-bi4zyox2" # ✅ Ensure this is correctly set
+    default: "0306-121953-zzyilgn8" # ✅ Ensure this is correctly set
 
 resources:
   jobs:
@@ -100,7 +100,7 @@ resources:
 
 targets:
   dev:
-    cluster_id: 0304-184328-bi4zyox2
+    cluster_id: 0306-121953-zzyilgn8
     default: true
     mode: development
     workspace:
