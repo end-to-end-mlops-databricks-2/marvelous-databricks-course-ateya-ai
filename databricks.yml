@@ -104,21 +104,21 @@ targets:
     default: true
     mode: development
     workspace:
-      host: https://adb-915499314228554.14.azuredatabricks.net
+      host: https://adb-3396447954555637.17.azuredatabricks.net
       root_path: /Workspace/Users/${workspace.current_user.userName}/.bundle/${bundle.target}/${bundle.name}
     variables:
       schedule_pause_status: PAUSED
 
   acc:
     workspace:
-      host: https://adb-915499314228554.14.azuredatabricks.net
+      host: https://adb-3396447954555637.17.azuredatabricks.net
       root_path: /Shared/.bundle/${bundle.target}/${bundle.name}
     variables:
       schedule_pause_status: PAUSED
 
   prd:
     workspace:
-      host: https://adb-915499314228554.14.azuredatabricks.net
+      host: https://adb-3396447954555637.17.azuredatabricks.net
       root_path: /Shared/.bundle/${bundle.target}/${bundle.name}
     variables:
       schedule_pause_status: UNPAUSED
