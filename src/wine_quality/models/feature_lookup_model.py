@@ -46,7 +46,7 @@ class FeatureLookUpModel:
         self.schema_name = self.config.schema_name
 
         # Define table names and function name
-        self.feature_table_name = f"{self.catalog_name}.{self.schema_name}.wine_quality_features_dab"
+        self.feature_table_name = f"{self.catalog_name}.{self.schema_name}.wine_quality_features"
         self.function_name = f"{self.catalog_name}.{self.schema_name}.calculate_total_acidity_index_dab"
 
         # MLflow configuration
@@ -65,10 +65,10 @@ class FeatureLookUpModel:
         self.spark.sql(f"ALTER TABLE {self.feature_table_name} SET TBLPROPERTIES (delta.enableChangeDataFeed = true);")
 
         self.spark.sql(
-            f"INSERT INTO {self.feature_table_name} SELECT Id, fixed_acidity, citric_acid, volatile_acidity FROM {self.catalog_name}.{self.schema_name}.train_set_dab"
+            f"INSERT INTO {self.feature_table_name} SELECT Id, fixed_acidity, citric_acid, volatile_acidity FROM {self.catalog_name}.{self.schema_name}.train_set"
         )
         self.spark.sql(
-            f"INSERT INTO {self.feature_table_name} SELECT Id, fixed_acidity, citric_acid, volatile_acidity FROM {self.catalog_name}.{self.schema_name}.test_set_dab"
+            f"INSERT INTO {self.feature_table_name} SELECT Id, fixed_acidity, citric_acid, volatile_acidity FROM {self.catalog_name}.{self.schema_name}.test_set"
         )
         logger.info("✅ Feature table created and populated.")
 
@@ -92,8 +92,8 @@ class FeatureLookUpModel:
         Load training and testing data from Delta tables.
         """
         # Load train and test sets
-        self.train_set = self.spark.table(f"{self.catalog_name}.{self.schema_name}.train_set_dab")
-        self.test_set = self.spark.table(f"{self.catalog_name}.{self.schema_name}.test_set_dab").toPandas()
+        self.train_set = self.spark.table(f"{self.catalog_name}.{self.schema_name}.train_set")
+        self.test_set = self.spark.table(f"{self.catalog_name}.{self.schema_name}.test_set").toPandas()
 
         # Cast columns to appropriate types
 
@@ -276,21 +276,21 @@ class FeatureLookUpModel:
             f"""
             WITH max_timestamp AS (
                 SELECT MAX(update_timestamp_utc) AS max_update_timestamp
-                FROM {self.config.catalog_name}.{self.config.schema_name}.train_set_dab
+                FROM {self.config.catalog_name}.{self.config.schema_name}.train_set
             )
             INSERT INTO {self.feature_table_name}
             SELECT Id, fixed_acidity, citric_acid, volatile_acidity
-            FROM {self.config.catalog_name}.{self.config.schema_name}.train_set_dab
+            FROM {self.config.catalog_name}.{self.config.schema_name}.train_set
             WHERE update_timestamp_utc == (SELECT max_update_timestamp FROM max_timestamp)
             """,
             f"""
             WITH max_timestamp AS (
                 SELECT MAX(update_timestamp_utc) AS max_update_timestamp
-                FROM {self.config.catalog_name}.{self.config.schema_name}.test_set_dab
+                FROM {self.config.catalog_name}.{self.config.schema_name}.test_set
             )
             INSERT INTO {self.feature_table_name}
             SELECT Id, fixed_acidity, citric_acid, volatile_acidity
-            FROM {self.config.catalog_name}.{self.config.schema_name}.test_set_dab
+            FROM {self.config.catalog_name}.{self.config.schema_name}.test_set
             WHERE update_timestamp_utc == (SELECT max_update_timestamp FROM max_timestamp)
             """,
         ]
@@ -312,7 +312,7 @@ class FeatureLookUpModel:
             )
 
             current_best_model_uri = (
-                f"models:/{self.catalog_name}.{self.schema_name}.wine_quality_model_fe_dab@latest-model"
+                f"models:/{self.catalog_name}.{self.schema_name}.wine_quality_model_fe@latest-model"
             )
             predictions_current = self.fe.score_batch(model_uri=current_best_model_uri, df=X_test).withColumnRenamed(
                 "prediction", "prediction_current"

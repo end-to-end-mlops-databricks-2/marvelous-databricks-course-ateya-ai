@@ -1,6 +1,8 @@
 ---
 bundle:
   name: wine_quality
+include:
+  - bundle_monitoring.yml
 
 artifacts:
   default:
@@ -33,7 +35,7 @@ variables:
     default: UNPAUSED
   cluster_id:
     description: Cluster ID
-    default: "0306-121953-zzyilgn8" # ✅ Ensure this is correctly set
+    default: "0309-164632-1lee6ny7" # ✅ Ensure this is correctly set
 
 resources:
   jobs:
@@ -99,7 +101,7 @@ resources:
 
 targets:
   dev:
-    cluster_id: 0306-121953-zzyilgn8
+    cluster_id: 0309-164632-1lee6ny7
     default: true
     mode: development
     workspace:

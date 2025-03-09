@@ -1,0 +1,34 @@
+resources:
+  jobs:
+    wine-quality-monitor-update:
+      name: wine-quality-monitor-update-workflow
+      schedule:
+        quartz_cron_expression: "0 0 23 ? * SUN"
+        timezone_id: "America/Chicago"
+        pause_status: ${var.schedule_pause_status}
+      tags:
+        project_name: "wine-quality"
+      job_clusters:
+        - job_cluster_key: "wine-quality-cluster"
+          new_cluster:
+            spark_version: "15.4.x-scala2.12"
+            data_security_mode: "SINGLE_USER"
+            node_type_id: "r3.xlarge"
+            driver_node_type_id: "r3.xlarge"
+            autoscale:
+              min_workers: 1
+              max_workers: 1
+
+      tasks:
+        - task_key: "refresh_monitor_table"
+          # job_cluster_key: "house-price-cluster"
+          existing_cluster_id: 0309-164632-1lee6ny7
+          spark_python_task:
+            python_file: "scripts/04.refresh_monitor.py"
+            parameters:
+              - "--root_path"
+              - ${workspace.root_path}
+              - "--env"
+              - ${bundle.target}
+          libraries:
+            - whl: ./dist/*.whl

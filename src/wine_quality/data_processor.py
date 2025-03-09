@@ -103,7 +103,7 @@ class DataProcessor:
         )
 
 
-def generate_synthetic_data(df, num_rows=10):
+def generate_synthetic_data(df, drift: False, num_rows=10):
     """
     Generates synthetic data based on the distribution of the input DataFrame.
 
@@ -126,7 +126,16 @@ def generate_synthetic_data(df, num_rows=10):
         if pd.api.types.is_numeric_dtype(df[column]):
             try:
                 # Generate synthetic data using a normal distribution
-                synthetic_data[column] = np.random.normal(df[column].mean(), df[column].std(), num_rows)
+                if column == "quality":
+                    synthetic_data[column] = np.random.randint(0, 2, num_rows)
+                else:
+                    synthetic_data[column] = np.random.normal(df[column].mean(), df[column].std(), num_rows)
+            except ValueError as err:
+                raise ValueError(f"Cannot generate synthetic data for column {column}.") from err
+        elif pd.api.types.is_float_type(df[column]):
+            try:
+                # Generate synthetic data using a normal distribution
+                synthetic_data[column] = np.random.uniform(df[column].min(), df[column].max(), num_rows)
             except ValueError as err:
                 raise ValueError(f"Cannot generate synthetic data for column {column}.") from err
 
@@ -176,5 +185,12 @@ def generate_synthetic_data(df, num_rows=10):
     # Generate unique 'Id' column
     timestamp_base = int(time.time() * 1000)
     synthetic_data["Id"] = [str(timestamp_base + i) for i in range(num_rows)]
+
+    if drift:
+        skew_features = ["fixed_acidity", "citric_acid"]
+
+        for feature in skew_features:
+            if feature in synthetic_data.columns:
+                synthetic_data[feature] = synthetic_data[feature] * 2
 
     return synthetic_data

@@ -41,8 +41,8 @@ logger.info("Loaded config file.")
 
 catalog_name = config.catalog_name
 schema_name = config.schema_name
-endpoint_name = "wine-quality-model-serving-fe-{args.env}"
-# endpoint_name = "wine-quality-model-serving-fe-dev"
+# endpoint_name = "wine-quality-model-serving-fe-{args.env}"
+endpoint_name = "wine-quality-model-serving-fe-dev"
 
 # Initialize Feature Lookup Serving Manager
 feature_model_server = FeatureLookupServing(
