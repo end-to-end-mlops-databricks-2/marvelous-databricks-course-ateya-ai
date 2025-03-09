@@ -14,16 +14,16 @@ resources:
         pause_status: ${var.schedule_pause_status}
       tags:
         project_name: "wine-quality"
-      job_clusters:
-        - job_cluster_key: "wine-quality-cluster"
-          new_cluster:
-            spark_version: "15.4.x-scala2.12"
-            data_security_mode: "SINGLE_USER"
-            node_type_id: "r3.xlarge"
-            driver_node_type_id: "r3.xlarge"
-            autoscale:
-              min_workers: 1
-              max_workers: 1
+      # job_clusters:
+      #   - job_cluster_key: "wine-quality-cluster"
+      #     new_cluster:
+      #       spark_version: "15.4.x-scala2.12"
+      #       data_security_mode: "SINGLE_USER"
+      #       node_type_id: "r3.xlarge"
+      #       driver_node_type_id: "r3.xlarge"
+      #       autoscale:
+      #         min_workers: 1
+      #         max_workers: 1
 
       tasks:
         - task_key: "refresh_monitor_table"
