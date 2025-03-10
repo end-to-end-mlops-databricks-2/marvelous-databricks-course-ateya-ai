@@ -12,7 +12,9 @@ logger = logging.getLogger(__name__)
 
 
 def create_or_refresh_monitoring(config, spark, workspace):
-    inf_table = spark.sql(f"SELECT * FROM {config.catalog_name}.{config.schema_name}.`wine-quality-model-serving-fe-dev_payload`")
+    inf_table = spark.sql(
+        f"SELECT * FROM {config.catalog_name}.{config.schema_name}.`wine-quality-model-serving-fe-dev_payload`"
+    )
 
     request_schema = StructType(
         [
