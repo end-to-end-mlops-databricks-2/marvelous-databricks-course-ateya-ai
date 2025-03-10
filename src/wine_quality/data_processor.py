@@ -103,7 +103,7 @@ class DataProcessor:
         )
 
 
-def generate_synthetic_data(df, drift: False, num_rows=10):
+def generate_synthetic_data(df, drift=False, num_rows=10):
     """
     Generates synthetic data based on the distribution of the input DataFrame.
 
