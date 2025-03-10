@@ -1,6 +1,6 @@
 [project]
 name = "wine-quality"
-version = "0.0.38"
+version = "0.0.39"
 description = "Wine Quality Project"
 requires-python = ">=3.11, <3.12"
 dependencies = ["mlflow==2.17.0",
