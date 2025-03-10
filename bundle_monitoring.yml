@@ -2,7 +2,7 @@
 variables:
   cluster_id:
     description: Cluster ID
-    default: "0309-164632-1lee6ny7" # ✅ Ensure this is correctly set
+    default: "0310-180507-s36i43hu" # ✅ Ensure this is correctly set
 
 resources:
   jobs:
